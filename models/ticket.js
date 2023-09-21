@@ -1,11 +1,11 @@
 var Mongoose = require("mongoose");
 
 var TicketSchema = new Mongoose.Schema({
-    userID: {
+    raisedFrom: {
         type: Mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-    managerID: {
+    raisedTo: {
         type: Mongoose.Schema.Types.ObjectId,
         ref: "User"
     },

@@ -5,7 +5,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 exports.checkAuth = (req, res, next) => {
-    const token = req.cookies.token
+    const token = req.cookies.token || req.body.token
 
     if(!token) {
         return res.status(401).json({message: "Not Logged In!"})
@@ -16,7 +16,7 @@ exports.checkAuth = (req, res, next) => {
             return res.status(403).json({message: "Invalid Token!"})
         }
 
-        console.log(user);
+        //console.log(user);
         req.user = {
             email: user.email
         }

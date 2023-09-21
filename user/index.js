@@ -6,7 +6,7 @@ var router = express.Router();
 
 router.post("/signup", UserController.signup);
 router.post("/login", UserController.login);
-router.get("/logout", UserController.logout);
+//router.get("/logout", UserController.logout);
 
 router.get("/info", middlewares.checkAuth, (req, res) => {
     console.log(req.user)

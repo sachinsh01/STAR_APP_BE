@@ -16,7 +16,7 @@ exports.signup = async function(req, res) {
     var userdata = new UserModel(req.body)
 
     userdata.save().then((data) => {
-        console.log("Data Saved Successfully", data)
+        console.log("User Registered Successfully: ", data)
         res.send({
             message: "User Registered"
         })
@@ -52,7 +52,8 @@ exports.login = async function(req, res) {
         res.cookie("token", token, {
             httpOnly: true
         }).status(200).json({
-            message: "Login Successfull"
+            message: "Login Successfull",
+            token: token
         })
     }
 
@@ -61,7 +62,7 @@ exports.login = async function(req, res) {
     }    
 }
 
-exports.logout = async function(req, res) {
+/* exports.logout = async function(req, res) {
     res.clearCookie("token")
     res.status(200).json({message: "Logout Successfully"})
-}
+} */
