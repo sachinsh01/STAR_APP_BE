@@ -9,10 +9,6 @@ var AttendanceSchema = new Mongoose.Schema({
         type: Mongoose.Schema.Types.ObjectId,
         ref: "Project"
     },
-    password: {
-        type: String,
-        required: true
-    },
     date: {
         type: Date
     },
