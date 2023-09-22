@@ -6,6 +6,20 @@ if (process.env.NODE_ENV !== "production") {
     require('dotenv').config()
 }
 
+exports.getAllUsers = async function(req, res) {
+
+    const users = await UserModel.find({})
+
+    res.send(users)
+}
+
+exports.isAdmin = async function(req, res) {
+
+    const user = await UserModel.findOne({ email: req.user.email })
+
+    res.send({isAdmin: user.isAdmin})
+}
+
 exports.signup = async function(req, res) {
 
     const salt = await bcrypt.genSalt()
@@ -18,7 +32,7 @@ exports.signup = async function(req, res) {
     userdata.save().then((data) => {
         console.log("User Registered Successfully: ", data)
         res.send({
-            message: "User Registered"
+            message: "User Registered!"
         })
     }, (error) => {
         console.log("Error While Saving the Data", error)
@@ -30,10 +44,10 @@ exports.signup = async function(req, res) {
 
 exports.login = async function(req, res) {
 
-    const user = await UserModel.findOne({ email: req.body.email });
+    const user = await UserModel.findOne({ email: req.body.email })
 
     if (user == null) {
-        return res.status(400).send("User Not Found!");
+        return res.status(400).send("User Not Found!")
     }
 
     try {
@@ -49,9 +63,13 @@ exports.login = async function(req, res) {
             
         const token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {expiresIn: "1d"})
 
-        res.cookie("token", token, {
+        /*res.cookie("token", token, {
             httpOnly: true
         }).status(200).json({
+            message: "Login Successfull"
+        })*/
+
+        res.status(200).json({
             message: "Login Successfull",
             token: token
         })
