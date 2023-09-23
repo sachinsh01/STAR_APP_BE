@@ -5,6 +5,9 @@ var ProjectSchema = new Mongoose.Schema({
         type: String,
         required: true
     },
+    description: {
+        type: String
+    },
     vertical: {
         type: String
     },
