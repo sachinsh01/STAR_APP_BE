@@ -1,7 +1,8 @@
-var UserModel = require("../models/user");
-var bcrypt = require("bcrypt");
-var jwt = require("jsonwebtoken");
+const UserModel = require("../models/user");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const { cloudinary } = require("../cloudinary");
+const mailer = require("../helpers/mailer")
 
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
@@ -20,8 +21,11 @@ exports.isAdmin = async function (req, res) {
 };
 
 exports.signup = async function (req, res) {
+
+  const password = req.body.password;
+
   const salt = await bcrypt.genSalt();
-  const hashedPass = await bcrypt.hash(req.body.password, salt);
+  const hashedPass = await bcrypt.hash(password, salt);
 
   req.body.password = hashedPass;
 
@@ -30,6 +34,9 @@ exports.signup = async function (req, res) {
   userdata.save().then(
     (data) => {
       console.log("User Registered Successfully: ", data);
+
+      mailer.email(data, password);
+
       res.send({
         message: "User Registered!",
       });
