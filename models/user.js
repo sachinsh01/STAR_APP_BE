@@ -16,7 +16,7 @@ var UserSchema = new Mongoose.Schema({
         required: true
     },
     designation: {
-        type: Boolean
+        type: String
     },
     image: {
         type: String
