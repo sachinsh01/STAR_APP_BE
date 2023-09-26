@@ -1,9 +1,7 @@
 var UserModel = require("../models/user")
 var ProjectModel  = require("../models/project")
-var ResourceModel  = require("../models/resource")
-var ObjectId = require('mongoose').Types.ObjectId; 
-var bcrypt = require("bcrypt")
-var jwt = require("jsonwebtoken")
+var ResourceMapModel  = require("../models/resourceMap")
+const mongoose = require('mongoose');
 
 if (process.env.NODE_ENV !== "production") {
     require('dotenv').config()
@@ -61,7 +59,7 @@ exports.getManagerProjects = async function(req, res) {
 exports.getResourceProjects = async function(req, res) {
 
     const user = await UserModel.findOne({email: req.user.email})
-    const resources = await ResourceModel.find({resourceID: user._id})
+    const resources = await ResourceMapModel.find({resourceID: user._id})
 
     const projectIDs = resources.map(object => object.projectID)
 
@@ -87,13 +85,13 @@ exports.deleteProject = async function(req, res) {
 
 exports.addResource = async function(req, res) {
 
-    var resource = await ResourceModel.find({resourceID: req.params.resourceID})
+    var resource = await ResourceMapModel.find({resourceID: req.params.resourceID})
 
     if(resource.length != 0) {
         return res.send({message: "Resource already added!!!"})
     }
 
-    var resource = new ResourceModel({
+    var resource = new ResourceMapModel({
         projectID: req.body.projectID,
         resourceID: req.params.resourceID,
         expectedHours: req.body.expectedHours,
@@ -114,14 +112,14 @@ exports.addResource = async function(req, res) {
 
 exports.getResources = async function(req, res) {
 
-    const resources = await ResourceModel.find({projectID: req.params.projectID})
+    const resources = await ResourceMapModel.find({projectID: req.params.projectID})
 
     res.send(resources)
 }
 
 exports.deleteResource = async function(req, res) {
 
-    const resource = await ResourceModel.findOneAndDelete({resourceID: req.params.resourceID});
+    const resource = await ResourceMapModel.findOneAndDelete({resourceID: req.params.resourceID});
 
     if(!resource) {
         return res.send({message: "Resource not found!!!"})

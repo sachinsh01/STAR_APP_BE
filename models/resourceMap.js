@@ -1,6 +1,6 @@
 var Mongoose = require("mongoose");
 
-var ResourceSchema = new Mongoose.Schema({
+var ResourceMapSchema = new Mongoose.Schema({
     projectID: {
         type: Mongoose.Schema.Types.ObjectId,
         ref: "Project"
@@ -16,9 +16,12 @@ var ResourceSchema = new Mongoose.Schema({
     description: {
         type: String,
         required: true
+    },
+    isClientBillable: {
+        type: Boolean
     }
 });
 
-var ResourceModel = Mongoose.model("Resource", ResourceSchema);
+var ResourceMapModel = Mongoose.model("ResourceMap", ResourceMapSchema);
 
-module.exports = ResourceModel
+module.exports = ResourceMapModel

@@ -2,7 +2,7 @@ if (process.env.NODE_ENV !== "production") {
     require('dotenv').config()
 }
 
-var mongoose = require("mongoose");
+var mongoose = require("mongoose"); //ETL: Extract Transform Load
 var dbURL = process.env.DB_URL
 var dbLocal = 'mongodb://localhost:27017/STAR-APP'
 
