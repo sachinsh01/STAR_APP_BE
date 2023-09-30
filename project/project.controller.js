@@ -85,7 +85,7 @@ exports.deleteProject = async function(req, res) {
 
 exports.addResource = async function(req, res) {
 
-    var resource = await ResourceMapModel.find({resourceID: req.params.resourceID})
+    var resource = await ResourceMapModel.find({resourceID: req.params.resourceID, projectID: req.body.projectID})
 
     if(resource.length != 0) {
         return res.send({message: "Resource already added!!!"})

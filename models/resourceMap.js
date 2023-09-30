@@ -11,14 +11,13 @@ var ResourceMapSchema = new Mongoose.Schema({
     },
     expectedHours: {
         type: Number,
-        required: true
     },
     description: {
         type: String,
-        required: true
     },
     isClientBillable: {
-        type: Boolean
+        billable: Boolean,
+        from: Date
     }
 });
 

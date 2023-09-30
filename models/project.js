@@ -1,6 +1,9 @@
 var Mongoose = require("mongoose");
 
 var ProjectSchema = new Mongoose.Schema({
+  id: {
+    type: String
+  },
   projectName: {
     type: String,
     required: true,
