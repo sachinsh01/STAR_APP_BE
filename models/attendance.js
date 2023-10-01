@@ -13,7 +13,7 @@ var AttendanceSchema = new Mongoose.Schema({
         type: Date
     },
     hours: {
-        type: Number
+        type: [Number]
     }
 });
 
