@@ -16,7 +16,7 @@ var TimesheetSchema = new Mongoose.Schema({
         type: Date,
     },
     totalHours: {
-        type: Number
+        type: [Number]
     },
     comment: {
         type: String

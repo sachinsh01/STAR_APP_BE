@@ -5,7 +5,6 @@ const middlewares = require("../middlewares/checkAuth")
 var router = express.Router();
 
 router.get("/all", middlewares.checkAuth, ProjectController.getAllProjects)
-router.post("/getAttendance", middlewares.checkAuth, ProjectController.getAttendance)
 router.get("/manager", middlewares.checkAuth, ProjectController.getManagerProjects)
 router.get("/resource", middlewares.checkAuth, ProjectController.getResourceProjects)
 router.get("/resources/:projectID", middlewares.checkAuth, ProjectController.getResources)

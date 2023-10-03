@@ -27,21 +27,6 @@ exports.createProject = async function (req, res) {
     );
 };
 
-exports.getAttendance = async function (req, res) {
-    const user = await UserModel.findOne({ email: req.user.email });
-    const resourceMap = await ResourceMapModel.find({ resourceID: user._id });
-    const projectIDs = resourceMap.map((object) => object.projectID);
-
-    const query = {
-        resourceID: user._id,
-        date: req.body.date
-    }
-
-    await AttendanceModel.find(query).then((data) => {
-        res.send(data)
-    })
-}
-
 exports.updateProject = async function (req, res) {
     const project = await ProjectModel.findByIdAndUpdate(
         { _id: req.params.projectID },

@@ -15,6 +15,15 @@ exports.getAllUsers = async function (req, res) {
   res.send(users);
 };
 
+exports.isLoggedin = async function (req, res) {
+  const user = await UserModel.findOne({ email: req.user.email });
+
+  res.send({
+    user: user,
+    message: "Loggedin",
+  });
+}
+
 exports.isAdmin = async function (req, res) {
   const user = await UserModel.findOne({ email: req.user.email });
 
