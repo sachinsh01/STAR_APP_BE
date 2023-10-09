@@ -24,6 +24,17 @@ exports.getAttendance = async function (req, res) {
   })
 }
 
+exports.managerTimesheets = async function (req, res) {
+  const user = await UserModel.findOne({ email: req.user.email });
+  const projects = await ProjectModel.find({ managerID: user._id });
+
+  projects.map(async (project) => {
+    const timesheets = await TimesheetModel({projectID: project._id});
+  })
+
+
+}
+
 exports.saveAttendance = async function (req, res) {
   const user = await UserModel.findOne({ email: req.user.email });
   let success = true;

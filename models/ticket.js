@@ -17,6 +17,9 @@ var TicketSchema = new Mongoose.Schema({
         type: String,
         required: true
     },
+    category: {
+        type: String
+    },
     description: {
         type: String,
         required: true

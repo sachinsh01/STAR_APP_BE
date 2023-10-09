@@ -1,5 +1,6 @@
 var UserModel = require("../models/user")
 var TicketModel = require("../models/ticket")
+var ProjectModel = require("../models/project");
 var bcrypt = require("bcrypt")
 var jwt = require("jsonwebtoken")
 
@@ -10,12 +11,14 @@ if (process.env.NODE_ENV !== "production") {
 exports.createTicket = async function(req, res) {
 
     const user = await UserModel.findOne({ email: req.user.email })
+    const project = await ProjectModel.findOne({_id: req.body.projectID})
 
     var ticketData = new TicketModel({
         raisedFrom: user._id,
-        raisedTo: req.body.raisedTo,
+        raisedTo: project.managerID,
         projectID: req.body.projectID, 
         subject: req.body.subject,
+        category: req.body.category,
         description: req.body.description,
         status: "pending",
         isElevated: false,
@@ -39,7 +42,10 @@ exports.ticketsRaised = async function(req, res) {
 
     const tickets = await TicketModel.find({ raisedFrom: user._id})
 
-    res.send(tickets)    
+    res.send({
+        tickets: tickets,
+        name: user.name
+    })    
 }
 
 exports.ticketsReceived = async function(req, res) {
