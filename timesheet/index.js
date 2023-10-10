@@ -6,6 +6,7 @@ var router = express.Router();
 
 router.get("/", middlewares.checkAuth, TimesheetController.getTimesheets);
 router.get("/manager", middlewares.checkAuth, TimesheetController.managerTimesheets);
+router.post("/status", middlewares.checkAuth, TimesheetController.changeStatus);
 router.post("/getAttendance", middlewares.checkAuth, TimesheetController.getAttendance);
 router.post("/saveAttendance", middlewares.checkAuth, TimesheetController.saveAttendance);
 router.post("/submitTimesheet", middlewares.checkAuth, TimesheetController.submitTimesheet);

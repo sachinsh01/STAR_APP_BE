@@ -25,14 +25,63 @@ exports.getAttendance = async function (req, res) {
 }
 
 exports.managerTimesheets = async function (req, res) {
-  const user = await UserModel.findOne({ email: req.user.email });
-  const projects = await ProjectModel.find({ managerID: user._id });
+  try {
+    const user = await UserModel.findOne({ email: req.user.email });
+    const projects = await ProjectModel.find({ managerID: user._id });
 
-  projects.map(async (project) => {
-    const timesheets = await TimesheetModel({projectID: project._id});
+    const timesheetsWithDetails = [];
+
+    for (const project of projects) {
+      const timesheets = await TimesheetModel.find({ projectID: project._id });
+
+      for (const timesheet of timesheets) {
+        const resource = await UserModel.findOne({ _id: timesheet.resourceID });
+        const resourceMap = await ResourceMapModel.findOne({
+          resourceID: timesheet.resourceID,
+          projectID: project._id,
+        });
+
+        timesheetsWithDetails.push({
+          ...timesheet.toObject(), // Convert to plain object
+          projectName: project.projectName, // Add projectName field
+          expectedHours: resourceMap.expectedHours, // Add expectedHours from resourceMap
+          isClientBillable: resourceMap.isClientBillable, // Add isClientBillable from resourceMap
+          name: resource.name, // Add name from user
+          designation: resource.designation, // Add designation from user
+          image: resource.image, // Add image from user
+        });
+      }
+    }
+
+    // Assuming 'timesheetsWithDetails' is your array of timesheet objects with added fields
+    timesheetsWithDetails.sort((a, b) => {
+      // Parse the 'startDate' strings into Date objects
+      const dateA = new Date(a.startDate);
+      const dateB = new Date(b.startDate);
+
+      // Compare the dates in descending order (latest date first)
+      return dateB - dateA;
+    });
+
+    res.json({ timesheets: timesheetsWithDetails });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error!" });
+  }
+};
+
+exports.changeStatus = async function (req, res) {
+  await TimesheetModel.findOneAndUpdate({ _id: req.body.ID }, { status: req.body.status }).then((data) => {
+    console.log("Status Updated!", data);
+    res.send({
+      message: "Status updated!"
+    })
+  }, (error) => {
+    console.log("Error: ", error);
+    res.send({
+      message: "Internal Server Error!"
+    })
   })
-
-
 }
 
 exports.saveAttendance = async function (req, res) {
@@ -149,6 +198,17 @@ exports.getTimesheets = async function (req, res) {
       })
     );
 
+    // Assuming 'timesheets' is your array of timesheet objects
+    timesheets.sort((a, b) => {
+      // Parse the 'startDate' strings into Date objects
+      const dateA = new Date(a.startDate);
+      const dateB = new Date(b.startDate);
+
+      // Compare the dates in descending order (latest date first)
+      return dateB - dateA;
+    });
+
+
     res.send({ timesheets });
   } catch (error) {
     console.error(error);
@@ -158,9 +218,9 @@ exports.getTimesheets = async function (req, res) {
 
 exports.deleteTimesheet = async function (req, res) {
   const user = await UserModel.findOne({ email: req.user.email });
-  
-  await TimesheetModel.deleteOne({_id: req.body._id}).then((data) => {
-    res.send({message: "Timesheet Deleted!"})
+
+  await TimesheetModel.deleteOne({ _id: req.body._id }).then((data) => {
+    res.send({ message: "Timesheet Deleted!" })
   }, (error) => {
     console.log("Error", error)
     res.send("Internal Server Error!")

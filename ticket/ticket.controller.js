@@ -20,7 +20,7 @@ exports.createTicket = async function(req, res) {
         subject: req.body.subject,
         category: req.body.category,
         description: req.body.description,
-        status: "pending",
+        status: "Pending",
         isElevated: false,
         remarks: ""
     })
