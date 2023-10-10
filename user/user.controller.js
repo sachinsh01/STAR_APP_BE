@@ -24,6 +24,11 @@ exports.isLoggedin = async function (req, res) {
   });
 }
 
+exports.profile = async function (req, res) {
+  const user = await UserModel.findOne({ email: req.user.email });
+  res.send(user);
+}
+
 exports.isAdmin = async function (req, res) {
   const user = await UserModel.findOne({ email: req.user.email });
 
@@ -39,7 +44,14 @@ exports.signup = async function (req, res) {
 
   req.body.password = hashedPass;
 
-  var userdata = new UserModel(req.body);
+  const defaultImageUrl = "https://res.cloudinary.com/djtkzefmk/image/upload/v1696911605/STAR-APP/default_b7rfeq.png";
+
+  var userdata = new UserModel({
+    ...req.body,
+    image: {
+      url: req.body.image || defaultImageUrl
+    } // Use the provided image or the default URL
+  });
 
   userdata.save().then(
     (data) => {
