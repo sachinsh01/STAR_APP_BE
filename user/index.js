@@ -11,6 +11,7 @@ router.get("/get", UserController.getAllUsers);
 router.get("/isAdmin", middlewares.checkAuth, UserController.isAdmin);
 router.get("/isLoggedin", middlewares.checkAuth, UserController.isLoggedin);
 router.get("/profile", middlewares.checkAuth, UserController.profile);
+router.post("/password", middlewares.checkAuth, UserController.changePassword);
 router.post("/signup", UserController.signup);
 router.post("/login", UserController.login);
 router.post("/image", upload.single("photo"), UserController.uploadImage); //Pending: Create an input field on the form with a name photo. Also, set enctype ="multipart/form-data"

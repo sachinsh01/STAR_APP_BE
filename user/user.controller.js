@@ -15,6 +15,20 @@ exports.getAllUsers = async function (req, res) {
   res.send(users);
 };
 
+exports.changePassword = async function (req, res) {
+
+  const password = req.body.password;
+
+  const salt = await bcrypt.genSalt();
+  const hashedPass = await bcrypt.hash(password, salt);
+
+  const users = await UserModel.findOneAndUpdate({email: req.user.email }, {password: hashedPass});
+
+  res.send({
+    message: "Password Changed!"
+  })
+}
+
 exports.isLoggedin = async function (req, res) {
   const user = await UserModel.findOne({ email: req.user.email });
 
