@@ -2,7 +2,8 @@ const UserModel = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { cloudinary } = require("../cloudinary");
-const mailer = require("../helpers/mailer")
+const mailer = require("../helpers/mailer");
+var ProjectModel = require("../models/project");
 
 
 if (process.env.NODE_ENV !== "production") {
@@ -41,6 +42,24 @@ exports.isLoggedin = async function (req, res) {
 exports.profile = async function (req, res) {
   const user = await UserModel.findOne({ email: req.user.email });
   res.send(user);
+}
+
+exports.isManager = async function (req, res) {
+  const user = await UserModel.findOne({ email: req.user.email });
+  
+  const projects = await ProjectModel.find({managerID: user._id});
+
+  if(projects.length == 0) {
+    res.send({
+      manager: false
+    })
+  }
+
+  else {
+    res.send({
+      manager: true
+    })
+  }
 }
 
 exports.isAdmin = async function (req, res) {

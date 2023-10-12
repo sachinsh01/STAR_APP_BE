@@ -11,6 +11,7 @@ router.get("/get", UserController.getAllUsers);
 router.get("/isAdmin", middlewares.checkAuth, UserController.isAdmin);
 router.get("/isLoggedin", middlewares.checkAuth, UserController.isLoggedin);
 router.get("/profile", middlewares.checkAuth, UserController.profile);
+router.get("/isManager", middlewares.checkAuth, UserController.isManager);
 router.post("/password", middlewares.checkAuth, UserController.changePassword);
 router.post("/signup", UserController.signup);
 router.post("/login", UserController.login);
