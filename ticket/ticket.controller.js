@@ -15,8 +15,8 @@ exports.createTicket = async function(req, res) {
 
     var ticketData = new TicketModel({
         raisedFrom: user._id,
-        raisedTo: project.managerID,
-        projectID: req.body.projectID, 
+        raisedTo: req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5",
+        projectID: req.body.projectID ? req.body.projectID : "65278a474a19cc020cd29966", 
         subject: req.body.subject,
         category: req.body.category,
         description: req.body.description,
@@ -36,17 +36,44 @@ exports.createTicket = async function(req, res) {
     })
 }
 
-exports.ticketsRaised = async function(req, res) {
+exports.ticketsRaised = async function (req, res) {
+    const user = await UserModel.findOne({ email: req.user.email });
+  
+    const tickets = await TicketModel.find({ raisedFrom: user._id }).then(async (data) => {
+      const resp = await Promise.all(data.map(async (item) => {
 
-    const user = await UserModel.findOne({ email: req.user.email })
+        if(item.projectID) {
+            const project = await ProjectModel.findOne({ _id: item.projectID });
 
-    const tickets = await TicketModel.find({ raisedFrom: user._id})
-
-    res.send({
-        tickets: tickets,
-        name: user.name
-    })    
-}
+            if (project) {
+                return {
+                  subject: item.subject,
+                  category: item.category,
+                  projectCode: project.id, // Use project.id for the ID field
+                  description: item.description,
+                  status: item.status,
+                  remarks: item.remarks
+                };
+              }
+            
+            else {
+                return {
+                    subject: item.subject,
+                    category: item.category,
+                    description: item.description,
+                    status: item.status,
+                    remarks: item.remarks
+                  }; // Return the item without a projectCode if project is not found
+              }
+        }
+      }));
+  
+      res.send({
+        tickets: resp,
+      });
+    });
+  };
+  
 
 exports.ticketsReceived = async function(req, res) {
 

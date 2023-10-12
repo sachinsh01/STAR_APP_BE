@@ -63,7 +63,8 @@ exports.signup = async function (req, res) {
   var userdata = new UserModel({
     ...req.body,
     image: {
-      url: req.body.image || defaultImageUrl
+      url: req.body.image || defaultImageUrl,
+      filename: null
     } // Use the provided image or the default URL
   });
 
@@ -127,18 +128,15 @@ exports.login = async function (req, res) {
 };
 
 exports.uploadImage = async function (req, res) {
-  const user = await UserModel.find({ email: req.user.email });
 
-  if (user.image.filename) {
+  /* if (user.image.filename) {
     await cloudinary.uploader.destroy(user.image.filename);
-  }
-
-  user.image = {
+  } */
+  
+  const user = await UserModel.findOneAndUpdate({ email: req.user.email }, {image: {
     url: req.file.path,
     filename: req.file.filename,
-  };
-
-  await user.save().then(
+  }}).then(
     (data) => {
       res.send({
         message: "Image Uploaded!",
@@ -151,6 +149,9 @@ exports.uploadImage = async function (req, res) {
     }
   );
 };
+
+  
+
 
 /* exports.logout = async function(req, res) {
     res.clearCookie("token")

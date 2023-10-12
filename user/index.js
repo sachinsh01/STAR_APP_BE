@@ -3,7 +3,7 @@ var UserController = require("./user.controller");
 const middlewares = require("../middlewares/checkAuth");
 var multer = require("multer");
 const { storage } = require("../cloudinary");
-var upload = multer({ storage });
+var upload = multer({storage});
 
 var router = express.Router();
 
@@ -14,7 +14,7 @@ router.get("/profile", middlewares.checkAuth, UserController.profile);
 router.post("/password", middlewares.checkAuth, UserController.changePassword);
 router.post("/signup", UserController.signup);
 router.post("/login", UserController.login);
-router.post("/image", upload.single("photo"), UserController.uploadImage); //Pending: Create an input field on the form with a name photo. Also, set enctype ="multipart/form-data"
+router.post("/image", upload.single("photo"), middlewares.checkAuth, UserController.uploadImage); //Pending: Create an input field on the form with a name photo. Also, set enctype ="multipart/form-data"
 
 //router.get("/logout", UserController.logout)
 
