@@ -70,10 +70,10 @@ exports.managerTimesheets = async function (req, res) {
 };
 
 exports.changeStatus = async function (req, res) {
-  await TimesheetModel.findOneAndUpdate({ _id: req.body.ID }, { status: req.body.status }).then((data) => {
+  await TimesheetModel.findOneAndUpdate({ _id: req.body.ID }, { status: req.body.status, remarks: req.body.remarks }).then((data) => {
     console.log("Status Updated!", data);
     res.send({
-      message: "Status updated!"
+      message: "Action Performed!"
     })
   }, (error) => {
     console.log("Error: ", error);
@@ -101,7 +101,8 @@ exports.saveAttendance = async function (req, res) {
       resourceID: user._id,
       projectID: key,
       date: req.body.weekStartDate,
-      hours: hours
+      hours: hours,
+      isSubmitted: false
     })
 
     attendanceData.save().then((data) => {
@@ -131,11 +132,23 @@ exports.submitTimesheet = async function (req, res) {
 
     const hours = req.body.hours[key].map((value) => (value === "" ? 0 : value));
 
-    await AttendanceModel.deleteOne({
+    const attendance = await AttendanceModel.findOne({
       resourceID: user._id,
       projectID: key,
       date: req.body.weekStartDate
     });
+
+    if (attendance) {
+      if (attendance.isSubmitted) {
+        return res.send({ message: "Already submitted timesheet for this week" });
+      } else {
+        await AttendanceModel.deleteOne({
+          resourceID: user._id,
+          projectID: key,
+          date: req.body.weekStartDate
+        });
+      }
+    }
 
     const query = {
       projectID: key,
@@ -145,16 +158,24 @@ exports.submitTimesheet = async function (req, res) {
     var resourceMap = await ResourceMapModel.findOne(query);
 
     let expectedHours = null;
+    let autoApprove = true;
 
     if (resourceMap) {
       expectedHours = resourceMap.expectedHours;
+    }
+
+    for (let i = 0; i < hours.length - 2; i++) {
+      if (hours[i] != expectedHours / 5) {
+        autoApprove = false;
+      }
     }
 
     var attendanceData = new AttendanceModel({
       resourceID: user._id,
       projectID: key,
       date: req.body.weekStartDate,
-      hours: hours
+      hours: hours,
+      isSubmitted: true
     });
 
     attendanceData.save().then((data) => {
@@ -169,7 +190,7 @@ exports.submitTimesheet = async function (req, res) {
         comment: req.body.comment,
         submissionDate: moment(),
         approvalDate: "",
-        status: "Pending",
+        status: autoApprove ? "Auto-Approved" : "Pending",
         remarks: "",
         expectedHours: expectedHours // Add expectedHours to the timesheet
       });
@@ -230,12 +251,30 @@ exports.getTimesheets = async function (req, res) {
 }
 
 exports.deleteTimesheet = async function (req, res) {
-  const user = await UserModel.findOne({ email: req.user.email });
+  try {
+    const user = await UserModel.findOne({ email: req.user.email });
 
-  await TimesheetModel.deleteOne({ _id: req.body._id }).then((data) => {
-    res.send({ message: "Timesheet Deleted!" })
-  }, (error) => {
-    console.log("Error", error)
-    res.send("Internal Server Error!")
-  })
-}
+    const timesheetData = await TimesheetModel.findOne({ _id: req.body._id });
+
+    if (!timesheetData) {
+      return res.status(404).send({ message: "Timesheet not found!" });
+    }
+
+    await TimesheetModel.deleteOne({ _id: req.body._id });
+
+    const attendanceData = await AttendanceModel.findOneAndDelete({
+      resourceID: timesheetData.resourceID,
+      projectID: timesheetData.projectID,
+      date: timesheetData.startDate,
+    });
+
+    if (!attendanceData) {
+      return res.send({ message: "Attendance not found!" });
+    }
+
+    res.send({ message: "Timesheet and Attendance Deleted!" });
+  } catch (error) {
+    console.log("Error", error);
+    res.status(500).send("Internal Server Error!");
+  }
+};

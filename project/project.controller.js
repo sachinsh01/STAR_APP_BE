@@ -112,6 +112,7 @@ exports.addResource = async function (req, res) {
     var resource = await ResourceMapModel.find({
         resourceID: user._id,
         projectID: req.body.projectID,
+        expectedHours: req.body.expectedHours
     });
 
     if (resource.length != 0) {

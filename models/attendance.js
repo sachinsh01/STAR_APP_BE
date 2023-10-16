@@ -14,6 +14,9 @@ var AttendanceSchema = new Mongoose.Schema({
     },
     hours: {
         type: [Number]
+    },
+    isSubmitted: {
+        type: Boolean
     }
 });
 
