@@ -20,8 +20,8 @@ exports.createTicket = async function(req, res) {
         subject: req.body.subject,
         category: req.body.category,
         description: req.body.description,
-        status: "Pending",
-        isElevated: false,
+        status: user._id.toString() === (req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5").toString() ? "Elevated" : "Pending",
+        isElevated: user._id.toString() === (req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5").toString(),
         remarks: ""
     })
 
@@ -74,15 +74,35 @@ exports.ticketsRaised = async function (req, res) {
     });
   };
   
+  exports.ticketsReceived = async function(req, res) {
+    const user = await UserModel.findOne({ email: req.user.email });
 
-exports.ticketsReceived = async function(req, res) {
+    try {
+        const data = await TicketModel.find({ raisedTo: user._id });
 
-    const user = await UserModel.findOne({ email: req.user.email })
+        const finalData = await Promise.all(data.map(async (ticket) => {
+            const userFrom = await UserModel.findOne({ _id: ticket.raisedFrom });
 
-    const tickets = await TicketModel.find({ raisedTo: user._id })
+            let projectID = null;
+            if (ticket.projectID) {
+                const project = await ProjectModel.findOne({ _id: ticket.projectID });
+                projectID = project ? project.id : null;
+            }
 
-    res.send(tickets)    
-}
+            return {
+                ...ticket._doc,
+                image: userFrom.image,
+                name: userFrom.name,
+                projectID: projectID
+            };
+        }));
+        console.log(finalData)
+        res.send({ tickets: finalData });
+    } catch (error) {
+        console.error("Error occurred:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+};  
 
 exports.ticketsElevated = async function(req, res) {
 
@@ -93,9 +113,14 @@ exports.ticketsElevated = async function(req, res) {
 
 exports.elevateTicket = async function(req, res) {
 
-    const tickets = await TicketModel.findOneAndUpdate({ _id: req.body.ticketID}, {isElevated: True})
+    const tickets = await TicketModel.findOneAndUpdate({ _id: req.body.ticketID}, {isElevated: req.body.elevate, status: req.body.elevate ? "Elevated" : "Rejected"})
 
-    res.send({message: "Ticket Elevated!"})
+    if(req.body.elevate) {
+      res.send({message: "Ticket Elevated!"})
+    }
+    else {
+      res.send({message: "Ticket Rejected!"})
+    }  
 }
 
 exports.ticketStatusUpdate = async function(req, res) {

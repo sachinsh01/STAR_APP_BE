@@ -18,6 +18,9 @@ var TimesheetSchema = new Mongoose.Schema({
     totalHours: {
         type: [Number]
     },
+    expectedHours: {
+        type: Number,
+    },
     comment: {
         type: String
     },

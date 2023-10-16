@@ -44,8 +44,7 @@ exports.managerTimesheets = async function (req, res) {
         timesheetsWithDetails.push({
           ...timesheet.toObject(), // Convert to plain object
           projectName: project.projectName, // Add projectName field
-          expectedHours: resourceMap.expectedHours, // Add expectedHours from resourceMap
-          isClientBillable: resourceMap.isClientBillable, // Add isClientBillable from resourceMap
+          expectedHours: timesheet.expectedHours, // Add expectedHours
           name: resource.name, // Add name from user
           designation: resource.designation, // Add designation from user
           image: resource.image, // Add image from user
@@ -126,7 +125,7 @@ exports.saveAttendance = async function (req, res) {
 
 exports.submitTimesheet = async function (req, res) {
   const user = await UserModel.findOne({ email: req.user.email });
-  let success = true
+  let success = true;
 
   for (const key in req.body.hours) {
 
@@ -136,17 +135,30 @@ exports.submitTimesheet = async function (req, res) {
       resourceID: user._id,
       projectID: key,
       date: req.body.weekStartDate
-    })
+    });
+
+    const query = {
+      projectID: key,
+      resourceID: user._id
+    };
+
+    var resourceMap = await ResourceMapModel.findOne(query);
+
+    let expectedHours = null;
+
+    if (resourceMap) {
+      expectedHours = resourceMap.expectedHours;
+    }
 
     var attendanceData = new AttendanceModel({
       resourceID: user._id,
       projectID: key,
       date: req.body.weekStartDate,
       hours: hours
-    })
+    });
 
     attendanceData.save().then((data) => {
-      console.log("Following data saved: ", data)
+      console.log("Following data saved: ", data);
 
       var timesheetData = new TimesheetModel({
         resourceID: user._id,
@@ -158,29 +170,30 @@ exports.submitTimesheet = async function (req, res) {
         submissionDate: moment(),
         approvalDate: "",
         status: "Pending",
-        remarks: ""
-      })
+        remarks: "",
+        expectedHours: expectedHours // Add expectedHours to the timesheet
+      });
 
       timesheetData.save().then((data) => {
-        console.log("Following timesheet created: ", data)
+        console.log("Following timesheet created: ", data);
       }, (error) => {
-        console.log("Error While Submiting the Data", error);
-        success = false
-      })
+        console.log("Error While Submitting the Data", error);
+        success = false;
+      });
     }, (error) => {
       console.log("Error While Saving the Data", error);
-      success = false
-    })
+      success = false;
+    });
   }
 
   if (success) {
     res.send({
       message: "Data Submitted Successfully!"
-    })
+    });
   } else {
     res.send({
       message: "Internal Server Error!"
-    })
+    });
   }
 }
 

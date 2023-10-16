@@ -30,15 +30,6 @@ exports.changePassword = async function (req, res) {
   })
 }
 
-exports.isLoggedin = async function (req, res) {
-  const user = await UserModel.findOne({ email: req.user.email });
-
-  res.send({
-    user: user,
-    message: "Loggedin",
-  });
-}
-
 exports.profile = async function (req, res) {
   const user = await UserModel.findOne({ email: req.user.email });
   res.send(user);
@@ -69,6 +60,8 @@ exports.isAdmin = async function (req, res) {
 };
 
 exports.signup = async function (req, res) {
+
+  console.log("hey")
 
   const password = req.body.password;
 

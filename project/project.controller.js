@@ -41,22 +41,43 @@ exports.updateProject = async function (req, res) {
 
 exports.projectDetails = async function (req, res) {
     const project = await ProjectModel.findOne({ _id: req.params.projectID });
-
     res.send(project);
 };
 
 exports.getAllProjects = async function (req, res) {
-    const projects = await ProjectModel.find({});
+    try {
+        const projects = await ProjectModel.find({});
+        const finalData = await Promise.all(projects.map(async (project) => {
+            const user = await UserModel.findOne({ _id: project.managerID });
 
-    res.send(projects);
+            return {
+                ...project._doc,
+                managerName: user ? user.name : null,
+                managerImage: user ? user.image : null
+            };
+        }));
+
+        res.send(finalData);
+    } catch (error) {
+        res.status(500).send("Internal Server Error");
+    }
 };
+
 
 exports.getManagerProjects = async function (req, res) {
     const user = await UserModel.findOne({ email: req.user.email });
     const projects = await ProjectModel.find({ managerID: user._id });
 
-    res.send(projects);
+    const projectsFinal = projects.map((project) => ({
+        ...project._doc, // To extract the document and convert it to a plain object
+        managerImage: user.image,
+        managerName: user.name
+    }));
+
+    res.send(projectsFinal);
 };
+
+
 
 exports.getResourceProjects = async function (req, res) {
     const user = await UserModel.findOne({ email: req.user.email });
@@ -85,8 +106,11 @@ exports.deleteProject = async function (req, res) {
 };
 
 exports.addResource = async function (req, res) {
+
+    const user = await UserModel.findOne({email: req.params.email});
+
     var resource = await ResourceMapModel.find({
-        resourceID: req.params.resourceID,
+        resourceID: user._id,
         projectID: req.body.projectID,
     });
 
@@ -96,7 +120,7 @@ exports.addResource = async function (req, res) {
 
     var resource = new ResourceMapModel({
         projectID: req.body.projectID,
-        resourceID: req.params.resourceID,
+        resourceID: user._id,
         expectedHours: req.body.expectedHours,
         description: req.body.description,
     });
@@ -118,16 +142,32 @@ exports.addResource = async function (req, res) {
 };
 
 exports.getResources = async function (req, res) {
-    const resources = await ResourceMapModel.find({
-        projectID: req.params.projectID,
-    });
+    try {
+        const resourceData = await ResourceMapModel.find({
+            projectID: req.body.projectID,
+        });
 
-    res.send(resources);
+        const finalData = await Promise.all(resourceData.map(async (resource) => {
+            const user = await UserModel.findOne({ _id: resource.resourceID });
+
+            return {
+                ...resource._doc,
+                name: user ? user.name : null,
+                image: user ? user.image : null,
+                designation: user ? user.designation : null,
+            };
+        }));
+
+        res.send(finalData);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
+    }
 };
 
 exports.deleteResource = async function (req, res) {
     const resource = await ResourceMapModel.findOneAndDelete({
-        resourceID: req.params.resourceID,
+        _id: req.params.resourceID,
     });
 
     if (!resource) {
