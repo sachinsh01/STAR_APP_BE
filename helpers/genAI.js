@@ -2,11 +2,11 @@ require("dotenv").config();
 //import readline from "readline";
 const OpenAI = require("openai");
 
-var UserModel = require("./models/user");
-var ProjectModel = require("./models/project");
-var AttendanceModel = require("./models/attendance");
-var ResourceMapModel = require("./models/resourceMap");
-var TicketModel = require("./models/ticket");
+const UserModel = require("./models/user");
+const ProjectModel = require("./models/project");
+const AttendanceModel = require("./models/attendance");
+const ResourceMapModel = require("./models/resourceMap");
+const TicketModel = require("./models/ticket");
 const TimesheetModel = require("./models/timesheet");
 
 const openai = new OpenAI({ apiKey: process.env.API_KEY });

@@ -90,7 +90,7 @@ exports.signup = async function (req, res) {
     "https://res.cloudinary.com/djtkzefmk/image/upload/v1696911605/STAR-APP/default_b7rfeq.png";
 
   // Create a new user data instance with the provided data
-  var userdata = new UserModel({
+  const userdata = new UserModel({
     ...req.body,
     image: {
       url: req.body.image || defaultImageUrl,
