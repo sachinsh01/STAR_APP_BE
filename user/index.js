@@ -1,26 +1,23 @@
-var express = require("express");
-var UserController = require("./user.controller");
+// Import necessary modules and controllers
+const express = require("express");
+const UserController = require("./user.controller");
 const middlewares = require("../middlewares/checkAuth");
-var multer = require("multer");
+const multer = require("multer");
 const { storage } = require("../cloudinary");
-var upload = multer({storage});
+const upload = multer({ storage });
 
-var router = express.Router();
+// Create an instance of the express Router
+const router = express.Router();
 
-router.get("/get", UserController.getAllUsers);
-router.get("/isAdmin", middlewares.checkAuth, UserController.isAdmin);
-router.get("/profile", middlewares.checkAuth, UserController.profile);
-router.get("/isManager", middlewares.checkAuth, UserController.isManager);
-router.post("/password", middlewares.checkAuth, UserController.changePassword);
-router.post("/signup", UserController.signup);
-router.post("/login", UserController.login);
-router.post("/image", upload.single("photo"), middlewares.checkAuth, UserController.uploadImage); //Pending: Create an input field on the form with a name photo. Also, set enctype ="multipart/form-data"
+// Define routes for various user operations
+router.get("/get", UserController.getAllUsers); // Route to get all users
+router.get("/isAdmin", middlewares.checkAuth, UserController.isAdmin); // Route to check if the user is an admin
+router.get("/profile", middlewares.checkAuth, UserController.profile); // Route to get user profile
+router.get("/isManager", middlewares.checkAuth, UserController.isManager); // Route to check if the user is a manager
+router.post("/password", middlewares.checkAuth, UserController.changePassword); // Route to change the user's password
+router.post("/signup", UserController.signup); // Route for user signup
+router.post("/login", UserController.login); // Route for user login
+router.post("/image", upload.single("photo"), middlewares.checkAuth, UserController.uploadImage); // Route to upload user image
 
-//router.get("/logout", UserController.logout)
-
-/* router.get("/info", middlewares.checkAuth, (req, res) => {
-    console.log(req.user)
-    res.send("You're in :)")
-}) */
-
+// Export the router to be used in the application
 module.exports = router;

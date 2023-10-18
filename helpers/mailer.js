@@ -1,49 +1,29 @@
+// Import necessary modules
 const nodemailer = require("nodemailer");
-const Mailgen = require("mailgen");
+const moment = require('moment');
 
+// Load environment variables in development environment
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
+// Create a mail transporter with Gmail service and authentication
 let mailTransporter = nodemailer.createTransport({
-  service: "gmail",
+  service: "gmail", // Use Gmail service for mailing
   auth: {
-    user: process.env.STAR_EMAIL,
-    pass: process.env.STAR_PASS,
+    user: process.env.STAR_EMAIL, // Use the email from environment variables
+    pass: process.env.STAR_PASS, // Use the password from environment variables
   },
 });
 
-let MainGenerator = new Mailgen({
-  theme: "neopolitan",
-  product: {
-    name: "Mailgen",
-    link: "https://mailgen.js/",
-  },
-});
-
+// Function to send an email with user credentials
 exports.email = function (user, password) {
-  let response = {
-    body: {
-      name: user.name,
-      intro: `Your account has been created on the STAR-APP!`,
-      table: {
-        data: [
-          {
-            Email: user.email,
-            Password: password,
-          },
-        ],
-      },
-      outro: "Looking forward to see you on STAR APP.",
-    },
-  };
 
-  let mail = MainGenerator.generatePlaintext(response);
-
+  // Define email details including the sender, receiver, subject, and HTML content
   let details = {
-    from: "starapp.incedo@gmail.com",
-    to: user.email,
-    subject: "STAR APP: Account Created",
+    from: "starapp.incedo@gmail.com", // Sender's email
+    to: user.email, // Receiver's email
+    subject: "STAR APP: Account Created", // Email subject
     html: `<!DOCTYPE html>
     <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
     
@@ -309,15 +289,47 @@ exports.email = function (user, password) {
         </tbody>
       </table><!-- End -->
     </body>
-    </html>`,
+    </html>` // HTML content of the email
   };
 
+
+  // Send the email using the configured mail transporter
   mailTransporter
     .sendMail(details)
     .then(() => {
-      console.log("Credentials Sent!");
+      console.log("Credentials Sent!"); // Log a success message when the email is sent
     })
     .catch((error) => {
-      console.log(error);
+      console.log(error); // Log an error if the email fails to send
+    });
+};
+
+// Function to send an email for a filled timesheet
+exports.timesheetEmail = function (user, timesheet) {
+
+  // Define email details including the sender, receiver, subject, and HTML content
+  let details = {
+    from: "starapp.incedo@gmail.com", // Sender's email
+    to: user.email, // Receiver's email
+    subject: "STAR APP: Timesheet Filled", // Email subject
+    html: `
+      <html>
+        <body>
+          <p>Hello ${user.name},</p>
+          <p>Your timesheet has been successfully filled for the week ${moment(timesheet.startDate).format("MMM DD, YYYY")}.</p>
+          <p>Thank you!</p>
+        </body>
+      </html>
+    `, // HTML content of the email
+  };  
+  
+  // Send the email using the configured mail transporter
+  mailTransporter
+    .sendMail(details)
+    .then(() => {
+      console.log("Mail Sent!"); // Log a success message when the email is sent
+    })
+    .catch((error) => {
+      console.log(error); // Log an error if the email fails to send
     });
 };
