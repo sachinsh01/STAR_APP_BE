@@ -36,7 +36,7 @@ exports.managerTimesheets = async function (req, res) {
   try {
     // Find the user based on the provided email
     const user = await UserModel.findOne({ email: req.user.email });
-    
+
     // Find projects managed by the user
     const projects = await ProjectModel.find({ managerID: user._id });
 
@@ -81,7 +81,7 @@ exports.managerTimesheets = async function (req, res) {
   }
 };
 
- //Changes the status and remarks of a timesheet based on the provided ID.
+//Changes the status and remarks of a timesheet based on the provided ID.
 exports.changeStatus = async function (req, res) {
   await TimesheetModel.findOneAndUpdate(
     { _id: req.body.ID }, // Find the timesheet by its ID
@@ -111,12 +111,29 @@ exports.saveAttendance = async function (req, res) {
 
     const hours = req.body.hours[key].map((value) => (value === "" ? 0 : value));
 
-    // Delete any existing attendance data for the user and project on the specified date
-    await AttendanceModel.deleteOne({
+    // Check if attendance data exists for the user, project, and date
+    const attendance = await AttendanceModel.findOne({
       resourceID: user._id,
       projectID: key,
       date: req.body.weekStartDate
     });
+
+    // Handle scenarios based on existing attendance data
+    if (attendance) {
+      if (attendance.isSubmitted) {
+        return res.send({
+          message: "Timesheet Already Submitted!",
+          error: true
+        })
+      } else {
+        // Delete any existing attendance data for the user and project on the specified date
+        await AttendanceModel.deleteOne({
+          resourceID: user._id,
+          projectID: key,
+          date: req.body.weekStartDate
+        });
+      }
+    }
 
     // Create and save new attendance data
     const attendanceData = new AttendanceModel({

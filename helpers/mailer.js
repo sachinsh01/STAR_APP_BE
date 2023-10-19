@@ -311,7 +311,7 @@ exports.timesheetEmail = function (user, timesheet) {
   let details = {
     from: "starapp.incedo@gmail.com", // Sender's email
     to: user.email, // Receiver's email
-    subject: "STAR APP: Timesheet Filled", // Email subject
+    subject: `STAR APP: Timesheet Filled ${moment(timesheet.startDate).format("DD-MM-YY")}`, // Email subject
     html: `
       <html>
         <body>
