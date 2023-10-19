@@ -4,6 +4,8 @@ const middlewares = require("../middlewares/checkAuth")
 
 var router = express.Router();
 
+router.get("/getDataOfProjects", ProjectController.getDataOfProjects)
+router.get("/getDataOfProjectsManagers", ProjectController.getDataOfProjectsManagers)
 router.get("/all", middlewares.checkAuth, ProjectController.getAllProjects)
 router.get("/manager", middlewares.checkAuth, ProjectController.getManagerProjects)
 router.get("/resource", middlewares.checkAuth, ProjectController.getResourceProjects)
@@ -14,6 +16,5 @@ router.delete("/resources/:resourceID", middlewares.checkAuth, ProjectController
 router.get("/:projectID", middlewares.checkAuth, ProjectController.projectDetails)
 router.patch("/:projectID", middlewares.checkAuth, ProjectController.updateProject)
 router.delete("/:projectID", middlewares.checkAuth, ProjectController.deleteProject)
-
 
 module.exports = router
