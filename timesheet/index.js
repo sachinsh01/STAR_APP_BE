@@ -4,7 +4,6 @@ const middlewares = require("../middlewares/checkAuth");
 
 const router = express.Router();
 
-router.get("/holidays", TimesheetController.holidays); // Route to get holidays List
 router.get("/", middlewares.checkAuth, TimesheetController.getTimesheets); // Route to get timesheets
 router.get("/manager", middlewares.checkAuth, TimesheetController.managerTimesheets); // Route to get timesheets for a manager
 router.post("/status", middlewares.checkAuth, TimesheetController.changeStatus); // Route to change timesheet status
