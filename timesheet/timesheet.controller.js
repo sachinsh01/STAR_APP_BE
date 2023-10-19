@@ -122,7 +122,7 @@ exports.saveAttendance = async function (req, res) {
     if (attendance) {
       if (attendance.isSubmitted) {
         return res.send({
-          message: "Timesheet Already Submitted!",
+          message: "Cannot Save! Timesheet Already Submitted.",
           error: true
         })
       } else {
