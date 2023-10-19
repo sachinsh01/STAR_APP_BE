@@ -12,6 +12,9 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
+//Current Year
+const YEAR = 2023
+
 // Function to retrieve user attendance data based on the provided date
 exports.getAttendance = async function (req, res) {
   // Retrieve user data based on the provided user email
@@ -317,4 +320,28 @@ exports.deleteTimesheet = async function (req, res) {
     console.log("Error", error);
     res.status(500).send("Internal Server Error!");
   }
+};
+
+exports.holidays = function(req, res) {
+  // Holidays list
+  const holidaysList = [
+    { name: "Republic Day", date: `${YEAR}-01-26` },
+    { name: "Holi", date: `${YEAR}-03-08` },
+    { name: "Good Friday", date: `${YEAR}-04-07` },
+    { name: "Bakra Eid ", date: `${YEAR}-06-29` },
+    { name: "Independence Day", date: `${YEAR}-08-15` },
+    { name: "Gandhi Jayanti", date: `${YEAR}-10-02` },
+    { name: "Dussehra", date: `${YEAR}-10-24` },
+    { name: "Govardhan Puja", date: `${YEAR}-11-13` },
+    { name: "Guru Nanak Jayanti", date: `${YEAR}-11-27` },
+    { name: "Christmas Day", date: `${YEAR}-12-25` },
+  ];
+
+  try{
+    res.send(holidaysList)
+  } catch (error) {
+    console.log(error)
+    res.send("error -> ", error)
+  }
+}
 };

@@ -9,6 +9,8 @@ const middlewares = require("../middlewares/checkAuth");
 const router = express.Router();
 
 // Define various routes for project-related operations
+router.get("/getDataOfProjects", ProjectController.getDataOfProjects) //Get data of all projects to plot graph
+router.get("/getDataOfProjectsManagers", ProjectController.getDataOfProjectsManagers) //Get data of all managers to plot graph
 router.get("/all", middlewares.checkAuth, ProjectController.getAllProjects); // Get all projects
 router.get("/manager", middlewares.checkAuth, ProjectController.getManagerProjects); // Get projects managed by a user
 router.get("/resource", middlewares.checkAuth, ProjectController.getResourceProjects); // Get projects assigned to a resource
