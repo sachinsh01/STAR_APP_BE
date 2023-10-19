@@ -33,7 +33,7 @@ exports.createProject = async function (req, res) {
 exports.updateProject = async function (req, res) {
     // Find and update the project based on the provided ID
     const project = await ProjectModel.findByIdAndUpdate(
-        { _id: req.params.projectID.toString() },
+        { _id: req.params.projectID },
         req.body
     );
 
@@ -47,7 +47,7 @@ exports.updateProject = async function (req, res) {
 // Get details of a project
 exports.projectDetails = async function (req, res) {
     // Find and retrieve details of the project using the provided ID
-    const project = await ProjectModel.findOne({ _id: req.params.projectID.toString() });
+    const project = await ProjectModel.findOne({ _id: req.params.projectID });
     res.send(project);
 };
 
@@ -79,7 +79,7 @@ exports.getAllProjects = async function (req, res) {
 // Get projects managed by a user
 exports.getManagerProjects = async function (req, res) {
     // Find the user by email
-    const user = await UserModel.findOne({ email: req.user.email.toString() });
+    const user = await UserModel.findOne({ email: req.user.email });
     
     // Find projects managed by the user
     const projects = await ProjectModel.find({ managerID: user._id });
@@ -98,7 +98,7 @@ exports.getManagerProjects = async function (req, res) {
 // Get projects assigned to a resource
 exports.getResourceProjects = async function (req, res) {
     // Find the user by email
-    const user = await UserModel.findOne({ email: req.user.email.toString() });
+    const user = await UserModel.findOne({ email: req.user.email });
     
     // Find resources assigned to the user
     const resources = await ResourceMapModel.find({ resourceID: user._id });
@@ -179,7 +179,7 @@ exports.getResources = async function (req, res) {
     try {
         // Find resource data based on the projectID
         const resourceData = await ResourceMapModel.find({
-            projectID: req.body.projectID.toString(),
+            projectID: req.body.projectID,
         });
 
         // Use Promise.all to handle asynchronous operations for each resource
@@ -209,7 +209,7 @@ exports.getResources = async function (req, res) {
 exports.deleteResource = async function (req, res) {
     // Find and delete a resource based on the resourceID parameter
     const resource = await ResourceMapModel.findOneAndDelete({
-        _id: req.params.resourceID.toString(),
+        _id: req.params.resourceID,
     });
 
     // Check if the resource was not found and send an appropriate message
