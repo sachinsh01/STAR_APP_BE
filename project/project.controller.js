@@ -2,15 +2,13 @@
 const UserModel = require("../models/user");
 const ProjectModel = require("../models/project");
 const ResourceMapModel = require("../models/resourceMap");
-const TimesheetModel = require("../models/timesheet");
 
 if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
+    require("dotenv").config();
 }
 
 // Create a new project
 exports.createProject = async function (req, res) {
-
     const project = new ProjectModel(req.body);
 
     // Save the new project in the database
@@ -35,7 +33,7 @@ exports.createProject = async function (req, res) {
 exports.updateProject = async function (req, res) {
     // Find and update the project based on the provided ID
     const project = await ProjectModel.findByIdAndUpdate(
-        { _id: req.params.projectID.toString() },
+        { _id: req.params.projectID },
         req.body
     );
 
@@ -49,7 +47,7 @@ exports.updateProject = async function (req, res) {
 // Get details of a project
 exports.projectDetails = async function (req, res) {
     // Find and retrieve details of the project using the provided ID
-    const project = await ProjectModel.findOne({ _id: req.params.projectID.toString() });
+    const project = await ProjectModel.findOne({ _id: req.params.projectID });
     res.send(project);
 };
 
@@ -81,7 +79,7 @@ exports.getAllProjects = async function (req, res) {
 // Get projects managed by a user
 exports.getManagerProjects = async function (req, res) {
     // Find the user by email
-    const user = await UserModel.findOne({ email: req.user.email.toString() });
+    const user = await UserModel.findOne({ email: req.user.email });
     
     // Find projects managed by the user
     const projects = await ProjectModel.find({ managerID: user._id });
@@ -100,7 +98,7 @@ exports.getManagerProjects = async function (req, res) {
 // Get projects assigned to a resource
 exports.getResourceProjects = async function (req, res) {
     // Find the user by email
-    const user = await UserModel.findOne({ email: req.user.email.toString() });
+    const user = await UserModel.findOne({ email: req.user.email });
     
     // Find resources assigned to the user
     const resources = await ResourceMapModel.find({ resourceID: user._id });
@@ -126,173 +124,14 @@ exports.deleteProject = async function (req, res) {
     if (!project) {
         return res.send({ message: "Project not found!!!" });
     }
-  );
-};
 
-exports.getResources = async function (req, res) {
-  try {
-    const resourceData = await ResourceMapModel.find({
-      projectID: req.body.projectID,
+    // Send a success message along with the deleted project details
+    res.send({
+        message: "Action Performed!",
+        project: project,
     });
-
-    const finalData = await Promise.all(
-      resourceData.map(async (resource) => {
-        const user = await UserModel.findOne({ _id: resource.resourceID });
-
-        return {
-          ...resource._doc,
-          name: user ? user.name : null,
-          image: user ? user.image : null,
-          designation: user ? user.designation : null,
-        };
-      })
-    );
-
-    res.send(finalData);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal Server Error");
-  }
 };
 
-exports.deleteResource = async function (req, res) {
-  const resource = await ResourceMapModel.findOneAndDelete({
-    _id: req.params.resourceID,
-  });
-
-  if (!resource) {
-    return res.send({ message: "Resource not found!!!" });
-  }
-
-  res.send({
-    message: "Action Performed!",
-    resource: resource,
-  });
-};
-
-// Projects data for plotting
-exports.getDataOfProjects = async function (req, res) {
-  try {
-    //find all the projects
-    const projects = await ProjectModel.find({}, "id projectName");
-
-    // map project id to project names
-    const projectArray = projects.reduce((result, project) => {
-      result[project.id] = {
-        projectName: project.projectName,
-        projectObjectId: project._id,
-        hours: 0,
-        expectedHours: 0,
-      };
-      return result;
-    }, {});
-
-    const projectHours = {};
-
-    for (let projectId in projectArray) {
-      const timesheets = await TimesheetModel.find({
-        projectID: projectArray[projectId].projectObjectId,
-      });
-
-      const totalHours = timesheets.reduce((hours, timesheet) => {
-        return hours + timesheet.totalHours.reduce((a, b) => a + b, 0);
-      }, 0);
-
-      //find the expected hours from each resourcemap
-      let totalExpectedHours = 0;
-
-      for (const timesheet of timesheets) {
-        const resourceMap = await ResourceMapModel.find({
-          resourceID: timesheet.resourceID,
-          projectID: timesheet.projectID,
-        });
-        totalExpectedHours += resourceMap.reduce(
-          (a, b) => a + b.expectedHours,
-          0
-        );
-      }
-
-      projectArray[projectId].hours = totalHours;
-      projectArray[projectId].expectedHours = totalExpectedHours;
-    }
-
-    //send required data for plotting
-    res.send({ projectArray });
-  } catch (error) {
-    console.log("error -> ", error);
-    res.status(500).send({ error: "Internal Server Error" });
-  }
-};
-
-// Project Managers data for plotting
-exports.getDataOfProjectsManagers = async function (req, res) {
-  try {
-    //all managers
-    const managers = await ProjectModel.distinct("managerID");
-
-    const managersData = {};
-
-    for (const managerID of managers) {
-      // all projects under a manager
-      const projects = await ProjectModel.find({ managerID });
-      const manager = await UserModel.findOne({ _id: managerID });
-
-      const projectIDsData = projects.map((project) => {
-        return {
-          projectObjectId: project._id,
-          projectId: project.id,
-          projectName: project.projectName,
-          managerId: managerID,
-        };
-      });
-
-      let totalHours = 0;
-      let totalExpectedHours = 0;
-
-      for (const projectData of projectIDsData) {
-        const projectObjectId = projectData.projectObjectId;
-
-        // find hours from each timesheet in each project under a manager
-        const timesheets = await TimesheetModel.find({
-          projectID: projectObjectId,
-        });
-
-        const hoursInOneProject = timesheets.reduce((hours, timesheet) => {
-          return hours + timesheet.totalHours.reduce((a, b) => a + b, 0);
-        }, 0);
-
-        totalHours += hoursInOneProject;
-
-        //find the expected hours from each resourcemap
-        for (const timesheet of timesheets) {
-          const resourceMap = await ResourceMapModel.find({
-            resourceID: timesheet.resourceID,
-            projectID: timesheet.projectID,
-          });
-          totalExpectedHours += resourceMap.reduce(
-            (a, b) => a + b.expectedHours,
-            0
-          );
-        }
-
-      }
-
-      managersData[managerID] = {
-        manager: manager.name,
-        projectName: projectIDsData
-          .filter((projectData) => projectData.managerId === managerID)
-          .map((projectData) => projectData.projectName),
-        hours: totalHours,
-        expectedHours: totalExpectedHours,
-      };
-    }
-
-    res.send({ managersData });
-  } catch (error) {
-    console.log("error", error);
-    res.send({ error: error });
-  }
-};
 // Add a resource to a project
 exports.addResource = async function (req, res) {
     // Find the user by email in the request parameters
@@ -340,7 +179,7 @@ exports.getResources = async function (req, res) {
     try {
         // Find resource data based on the projectID
         const resourceData = await ResourceMapModel.find({
-            projectID: req.body.projectID.toString(),
+            projectID: req.body.projectID,
         });
 
         // Use Promise.all to handle asynchronous operations for each resource
@@ -370,7 +209,7 @@ exports.getResources = async function (req, res) {
 exports.deleteResource = async function (req, res) {
     // Find and delete a resource based on the resourceID parameter
     const resource = await ResourceMapModel.findOneAndDelete({
-        _id: req.params.resourceID.toString(),
+        _id: req.params.resourceID,
     });
 
     // Check if the resource was not found and send an appropriate message
