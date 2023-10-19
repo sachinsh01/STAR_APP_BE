@@ -1,26 +1,30 @@
-var Mongoose = require("mongoose");
+// Import the Mongoose module
+const Mongoose = require("mongoose");
 
-var ResourceMapSchema = new Mongoose.Schema({
-    projectID: {
+// Define the schema for the ResourceMap model
+const ResourceMapSchema = new Mongoose.Schema({
+    projectID: { // Reference to the Project model through ObjectID
         type: Mongoose.Schema.Types.ObjectId,
         ref: "Project"
     },
-    resourceID: {
+    resourceID: { // Reference to the User model through ObjectID
         type: Mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-    expectedHours: {
+    expectedHours: { // Number of expected hours for the resource
         type: Number,
     },
-    description: {
+    description: { // Description of the resource mapping
         type: String,
     },
-    isClientBillable: {
-        billable: Boolean,
-        from: Date
+    isClientBillable: { // Specifies whether the resource is client billable or not and from what date
+        billable: Boolean, // Boolean value indicating whether the client is billable
+        from: Date // Date from which the resource is client billable
     }
 });
 
-var ResourceMapModel = Mongoose.model("ResourceMap", ResourceMapSchema);
+// Create the ResourceMap model based on the defined schema
+const ResourceMapModel = Mongoose.model("ResourceMap", ResourceMapSchema);
 
-module.exports = ResourceMapModel
+// Export the ResourceMap model for use in other parts of the application
+module.exports = ResourceMapModel;

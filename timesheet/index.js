@@ -1,17 +1,16 @@
-var express = require("express");
-var TimesheetController = require("./timesheet.controller");
+const express = require("express");
+const TimesheetController = require("./timesheet.controller");
 const middlewares = require("../middlewares/checkAuth");
 
-var router = express.Router();
+const router = express.Router();
 
-router.get("/holidays", TimesheetController.holidays)
-router.get("/", middlewares.checkAuth, TimesheetController.getTimesheets);
-router.get("/manager", middlewares.checkAuth, TimesheetController.managerTimesheets);
-router.post("/status", middlewares.checkAuth, TimesheetController.changeStatus);
-router.post("/getAttendance", middlewares.checkAuth, TimesheetController.getAttendance);
-router.post("/saveAttendance", middlewares.checkAuth, TimesheetController.saveAttendance);
-router.post("/submitTimesheet", middlewares.checkAuth, TimesheetController.submitTimesheet);
-router.delete("/", middlewares.checkAuth, TimesheetController.deleteTimesheet);
-
+router.get("/holidays", TimesheetController.holidays); // Route to get holidays List
+router.get("/", middlewares.checkAuth, TimesheetController.getTimesheets); // Route to get timesheets
+router.get("/manager", middlewares.checkAuth, TimesheetController.managerTimesheets); // Route to get timesheets for a manager
+router.post("/status", middlewares.checkAuth, TimesheetController.changeStatus); // Route to change timesheet status
+router.post("/getAttendance", middlewares.checkAuth, TimesheetController.getAttendance); // Route to get attendance
+router.post("/saveAttendance", middlewares.checkAuth, TimesheetController.saveAttendance); // Route to save attendance
+router.post("/submitTimesheet", middlewares.checkAuth, TimesheetController.submitTimesheet); // Route to submit timesheet
+router.delete("/", middlewares.checkAuth, TimesheetController.deleteTimesheet);// Route to delete a timesheet
 
 module.exports = router;
