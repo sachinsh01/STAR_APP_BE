@@ -9,6 +9,11 @@ if (process.env.NODE_ENV !== "production") {
 
 // Create a new project
 exports.createProject = async function (req, res) {
+
+    const user = await UserModel.findOne({email: req.body.managerID});
+    
+    req.body.managerID = user._id;
+
     const project = new ProjectModel(req.body);
 
     // Save the new project in the database

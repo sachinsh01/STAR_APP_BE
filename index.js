@@ -23,7 +23,7 @@ server.use(express.json());
 // Use the defined routes for the server
 server.use(routes);
 
-require("dotenv").config();
+/* require("dotenv").config();
 const readline =  require("readline");
 const OpenAI = require("openai");
 
@@ -75,10 +75,7 @@ ui.on("line", async input => {
     console.log(completion.choices[0].message.content);
     })
     ui.prompt()
-})
-
-
-
+}) */
 
 // Start the server and listen on the specified port
 server.listen(Port, function() {

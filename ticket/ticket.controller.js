@@ -41,8 +41,8 @@ exports.createTicket = async function (req, res) {
         subject: req.body.subject,
         category: req.body.category,
         description: req.body.description,
-        status: user._id.toString() === (req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5").toString() ? "Elevated" : "Pending", // Set the status based on whether the user is the manager or not
-        isElevated: user._id.toString() === (req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5").toString(), // Set isElevated based on whether the user is the manager or not
+        status: user._id.toString() === (req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5").toString() ? "Elevated" : (req.body.category === "Technical Issue" ? "Elevated" : "Pending"), // Set the status based on whether the user is the manager or not
+        isElevated: user._id.toString() === (req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5").toString() || req.body.category === "Technical Issue", // Set isElevated based on whether the user is the manager or not
         remarks: ""
     })
 
@@ -145,31 +145,55 @@ exports.ticketsReceived = async function (req, res) {
 // Async function for fetching all elevated tickets
 exports.ticketsElevated = async function (req, res) {
     // Find all tickets that are elevated
-    const tickets = await TicketModel.find({ isElevated: true })
+    const data = await TicketModel.find({
+        isElevated: true,
+        status: { $ne: "Closed" }
+    });
+
+    const finalData = await Promise.all(data.map(async (ticket) => {
+        // Find the user who raised the ticket
+        const userFrom = await UserModel.findOne({ _id: ticket.raisedFrom });
+
+        let projectID = null;
+        // Check if the ticket has a projectID and fetch the associated project
+        if (ticket.projectID) {
+            const project = await ProjectModel.findOne({ _id: ticket.projectID });
+            projectID = project ? project.id : null;
+        }
+
+        // Return the ticket data with additional user and project information
+        return {
+            ...ticket._doc,
+            image: userFrom.image,
+            name: userFrom.name,
+            projectID: projectID
+        };
+    }))
 
     // Send the response with the elevated tickets
-    res.send(tickets)
+    res.send(finalData);
 }
 
 // Async function for elevating or rejecting a ticket
 exports.elevateTicket = async function (req, res) {
     // Find and update the ticket based on the provided ticket ID
-    TicketModel.findOneAndUpdate({ _id: req.body.ticketID }, { isElevated: req.body.elevate, status: req.body.elevate ? "Elevated" : "Rejected" })
-
-    // Send the response based on the ticket elevation status
-    if (req.body.elevate) {
-        res.send({ message: "Ticket Elevated!" })
-    }
-    else {
-        res.send({ message: "Ticket Rejected!" })
-    }
+    TicketModel.findOneAndUpdate({ _id: req.body.ticketID }, { isElevated: req.body.elevate, status: req.body.elevate ? "Elevated" : "Rejected" }).then((data) => {
+        // Send the response based on the ticket elevation status
+        if (req.body.elevate) {
+            res.send({ message: "Ticket Elevated!" })
+        }
+        else {
+            res.send({ message: "Ticket Rejected!" })
+        }
+    })
 }
 
 // Async function for updating the status of a ticket
 exports.ticketStatusUpdate = async function (req, res) {
     // Find and update the ticket status based on the provided ticket ID
-    TicketModel.findOneAndUpdate({ _id: req.body.ticketID }, { status: req.body.status, remarks: req.body.remarks })
+    TicketModel.findOneAndUpdate({ _id: req.body.ticketID }, { status: req.body.status }).then((data) => {
 
-    // Send the response after updating the ticket status
-    req.send({ message: "Status Updated!" })
+        // Send the response after updating the ticket status
+        res.send({ message: "Status Updated!" })
+    })
 }
