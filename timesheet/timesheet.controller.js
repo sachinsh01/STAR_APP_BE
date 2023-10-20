@@ -85,10 +85,15 @@ exports.managerTimesheets = async function (req, res) {
 exports.changeStatus = async function (req, res) {
   await TimesheetModel.findOneAndUpdate(
     { _id: req.body.ID }, // Find the timesheet by its ID
-    { status: req.body.status, remarks: req.body.remarks } // Update the status and remarks
+    { status: req.body.status, remarks: req.body.remarks, approvalDate: moment() } // Update the status and remarks
   ).then(
     (data) => { // If the operation is successful
       console.log("Status Updated!", data);
+
+      if(req.body.status == "Rejected") {
+        AttendanceModel.findOneAndUpdate({resourceID: req.body.sheet.resourceID, projectID: req.body.sheet.projectID, date: req.body.sheet.startDate}, {isSubmitted: false});
+      }
+
       res.send({
         message: "Action Performed!" // Send a success message
       });
