@@ -1,2 +1,3 @@
 node_modules/
 helpers/genAI.js
+.env

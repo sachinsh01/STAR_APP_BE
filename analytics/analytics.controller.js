@@ -7,7 +7,6 @@ const TimesheetModel = require("../models/timesheet");
 const TicketModel = require("../models/ticket")
 const moment = require('moment');
 
-// Function to compute the number of timesheets filled on or before the end date and the number of timesheets filled after the end date
 exports.timesheetsFilled = async function (req, res) {
     // Retrieve all timesheets from the database
     const timesheets = await TimesheetModel.find({});
@@ -37,10 +36,17 @@ exports.timesheetsFilled = async function (req, res) {
         }
     });
 
+    // Calculate the total number of timesheets
+    const totalTimesheets = filledOnOrBeforeEndDate + filledAfterEndDate;
+
+    // Calculate the percentages of timesheets filled on time and not on time
+    const onTimePercentage = ((filledOnOrBeforeEndDate / totalTimesheets) * 100).toFixed(2);
+    const notOnTimePercentage = ((filledAfterEndDate / totalTimesheets) * 100).toFixed(2);
+
     // Send the results as a response to the request
     res.send({
-        filledOnOrBeforeEndDate,
-        filledAfterEndDate
+        labels: ["On-Time", "Not On-Time"],
+        data: [onTimePercentage, notOnTimePercentage]
     });
 }
 
@@ -76,8 +82,61 @@ exports.ticketsStats = async function (req, res) {
 
     // Send the results as a response to the request
     res.send({
-        percentClosed,
-        percentOpen
+        labels: ["Open", "Closed"],
+        data:[percentOpen, percentClosed]
     });
 }
 
+// Function to calculate the percentage of timesheets greater and smaller than expected hours in each vertical
+exports.verticalWiseTime = async function (req, res) {
+    const verticals = ["Telecom", "Product Engineering", "Wealth Management", "Banking", "Life Sciences"];
+
+    const result = {
+        labels: verticals,
+        greaterThanExpected: [],
+        smallerThanExpected: []
+    };
+
+    // Iterate through each vertical
+    for (const vertical of verticals) {
+        // Find all project IDs for the current vertical
+        const projectIDs = await ProjectModel.find({ vertical: vertical }, { _id: 1 });
+
+        let totalTimesheets = 0;
+        let greaterCount = 0;
+        let smallerCount = 0;
+
+        // Iterate through each project ID
+        for (const project of projectIDs) {
+            // Find all timesheets for the current project ID
+            const timesheets = await TimesheetModel.find({ projectID: project._id });
+
+            // Update total timesheets
+            totalTimesheets += timesheets.length;
+
+            // Iterate through each timesheet
+            for (const timesheet of timesheets) {
+                // Calculate the sum of total hours
+                const totalHoursSum = timesheet.totalHours.reduce((a, b) => a + b, 0);
+
+                // Compare the sum with expected hours
+                if (totalHoursSum > timesheet.expectedHours) {
+                    greaterCount++;
+                } else if (totalHoursSum < timesheet.expectedHours) {
+                    smallerCount++;
+                }
+            }
+        }
+
+        // Calculate percentages
+        const greaterPercentage = (greaterCount / totalTimesheets) * 100;
+        const smallerPercentage = (smallerCount / totalTimesheets) * 100;
+
+        // Store the percentages in the result object
+        result.greaterThanExpected.push(greaterPercentage);
+        result.smallerThanExpected.push(smallerPercentage);
+    }
+
+    // Return the result object
+    res.json(result);
+};
