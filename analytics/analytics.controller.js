@@ -4,7 +4,7 @@ const ProjectModel = require("../models/project");
 const ResourceMapModel = require("../models/resourceMap");
 const AttendanceModel = require("../models/attendance");
 const TimesheetModel = require("../models/timesheet");
-const TicketModel = require("../models/ticket")
+const TicketModel = require("../models/ticket");
 const moment = require('moment');
 
 exports.timesheetsFilled = async function (req, res) {
