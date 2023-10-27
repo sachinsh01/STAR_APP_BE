@@ -246,7 +246,8 @@ exports.getDataOfManagers = async function (req, res) {
             );
           }
         }
-  
+        
+        //format the data to be ordered
         managersData[managerID] = {
           manager: manager.name,
           projectName: projectIDsData
@@ -267,10 +268,12 @@ exports.getDataOfManagers = async function (req, res) {
 //   Get billable, non-billable and expected hours data
   exports.getDataforPlotting = async function (req, res) {
     try {
+        // fetch all the timesheets
       const timesheets = await TimesheetModel.find({});
       const result = {};
   
       for (const timesheet of timesheets) {
+        //find corresponding projectID and resourceID
         const projectID = timesheet.projectID;
         const resourceID = timesheet.resourceID;
   
@@ -285,7 +288,7 @@ exports.getDataOfManagers = async function (req, res) {
           resourceID,
         }).exec();
         const expectedHours = resourceMap ? resourceMap.expectedHours : 0;
-  
+        // check whether billable or not (default non-billable)
         const isBillable =
           resourceMap && resourceMap.isClientBillable
             ? resourceMap.isClientBillable.billable
@@ -295,14 +298,14 @@ exports.getDataOfManagers = async function (req, res) {
   
         let billableHours = 0;
         let nonBillableHours = 0;
-  
+        
         for (let i = 0; i < timesheet.totalHours.length; i++) {
           const currentDate = timesheet.startDate;
           currentDate.setDate(currentDate.getDate() + i);
   
-          if (!from) {
+          if (!from) {                                    //if from date non given then hours are non-billable
             nonBillableHours += timesheet.totalHours[i];
-          } else if (from && !till) {
+          } else if (from && !till) {                     // if from data is given then hours are billable
             billableHours += timesheet.totalHours[i];
           } else if (from && till) {
             if (currentDate >= from && currentDate <= till) {
@@ -322,7 +325,7 @@ exports.getDataOfManagers = async function (req, res) {
           hours.nonBillableHours += hours.billableHours;
           hours.billableHours = 0;
         }
-  
+        //format data in ordered form
         if (!result[vertical]) {
           result[vertical] = hours;
           result[vertical].expectedHours = 0;
