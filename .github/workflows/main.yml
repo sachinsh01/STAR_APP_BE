@@ -1,0 +1,32 @@
+name: FE App to Windows VM
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Install Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Build React App
+      run: npm run build
+      
+    - name: Deploy to Windows VM
+      uses: SamKirkland/FTP-Deploy-Action@4.0.0
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./build
+        server-dir: /FE
+        args: --delete
