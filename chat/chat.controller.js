@@ -53,7 +53,7 @@ exports.chatResponse = async function (req, res) {
                 { role: "user", content: "users:" + data.users },
                 { role: "user", content: "projects:" + data.projects },
                 /* { role: "user", content: "timesheet:" + data.timesheet }, */
-                { role: "user", content: "tickets: " + data.tickets },
+                { role: "user", content: "tickets: " + data.tickets + " _id is the primary key"},
                 ...req.body.messages
             ],
             model: "gpt-3.5-turbo",

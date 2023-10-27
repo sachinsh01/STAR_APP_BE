@@ -177,7 +177,7 @@ exports.ticketsElevated = async function (req, res) {
 // Async function for elevating or rejecting a ticket
 exports.elevateTicket = async function (req, res) {
     // Find and update the ticket based on the provided ticket ID
-    TicketModel.findOneAndUpdate({ _id: req.body.ticketID }, { isElevated: req.body.elevate, status: req.body.elevate ? "Elevated" : "Rejected" }).then((data) => {
+    TicketModel.findOneAndUpdate({ _id: req.body.ticketID }, { isElevated: req.body.elevate, status: req.body.elevate ? "Elevated" : "Rejected", remarks: req.body.remarks }).then((data) => {
         // Send the response based on the ticket elevation status
         if (req.body.elevate) {
             res.send({ message: "Ticket Elevated!" })
@@ -191,7 +191,7 @@ exports.elevateTicket = async function (req, res) {
 // Async function for updating the status of a ticket
 exports.ticketStatusUpdate = async function (req, res) {
     // Find and update the ticket status based on the provided ticket ID
-    TicketModel.findOneAndUpdate({ _id: req.body.ticketID }, { status: req.body.status }).then((data) => {
+    TicketModel.findOneAndUpdate({ _id: req.body.ticketID }, { status: req.body.status, remarks: req.body.remarks }).then((data) => {
 
         // Send the response after updating the ticket status
         res.send({ message: "Status Updated!" })
