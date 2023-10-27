@@ -140,3 +140,204 @@ exports.verticalWiseTime = async function (req, res) {
     // Return the result object
     res.json(result);
 };
+
+// Projects data for plotting
+exports.getDataOfProjects = async function (req, res) {
+    try {
+      //find all the projects
+      const projects = await ProjectModel.find({}, "id projectName");
+  
+      // map project id to project names
+      const projectArray = projects.reduce((result, project) => {
+        result[project.id] = {
+          projectName: project.projectName,
+          projectObjectId: project._id,
+          hours: 0,
+          expectedHours: 0,
+        };
+        return result;
+      }, {});
+  
+      const projectHours = {};
+  
+      for (let projectId in projectArray) {
+        const timesheets = await TimesheetModel.find({
+          projectID: projectArray[projectId].projectObjectId,
+        });
+  
+        const totalHours = timesheets.reduce((hours, timesheet) => {
+          return hours + timesheet.totalHours.reduce((a, b) => a + b, 0);
+        }, 0);
+  
+        //find the expected hours from each resourcemap
+        let totalExpectedHours = 0;
+  
+        for (const timesheet of timesheets) {
+          const resourceMap = await ResourceMapModel.find({
+            resourceID: timesheet.resourceID,
+            projectID: timesheet.projectID,
+          });
+          totalExpectedHours += resourceMap.reduce(
+            (a, b) => a + b.expectedHours,
+            0
+          );
+        }
+  
+        projectArray[projectId].hours = totalHours;
+        projectArray[projectId].expectedHours = totalExpectedHours;
+      }
+  
+      //send required data for plotting
+      res.send({ projectArray });
+    } catch (error) {
+      console.log("error -> ", error);
+      res.status(500).send({ error: "Internal Server Error" });
+    }
+  };
+  
+  // Project Managers data for plotting
+exports.getDataOfManagers = async function (req, res) {
+    try {
+      //all managers
+      const managers = await ProjectModel.distinct("managerID");
+  
+      const managersData = {};
+  
+      for (const managerID of managers) {
+        // all projects under a manager
+        const projects = await ProjectModel.find({ managerID });
+        const manager = await UserModel.findOne({ _id: managerID });
+  
+        const projectIDsData = projects.map((project) => {
+          return {
+            projectObjectId: project._id,
+            projectId: project.id,
+            projectName: project.projectName,
+            managerId: managerID,
+          };
+        });
+  
+        let totalHours = 0;
+        let totalExpectedHours = 0;
+  
+        for (const projectData of projectIDsData) {
+          const projectObjectId = projectData.projectObjectId;
+  
+          // find hours from each timesheet in each project under a manager
+          const timesheets = await TimesheetModel.find({
+            projectID: projectObjectId,
+          });
+  
+          const hoursInOneProject = timesheets.reduce((hours, timesheet) => {
+            return hours + timesheet.totalHours.reduce((a, b) => a + b, 0);
+          }, 0);
+  
+          totalHours += hoursInOneProject;
+  
+          //find the expected hours from each resourcemap
+          for (const timesheet of timesheets) {
+            const resourceMap = await ResourceMapModel.find({
+              resourceID: timesheet.resourceID,
+              projectID: timesheet.projectID,
+            });
+            totalExpectedHours += resourceMap.reduce(
+              (a, b) => a + b.expectedHours,
+              0
+            );
+          }
+        }
+  
+        managersData[managerID] = {
+          manager: manager.name,
+          projectName: projectIDsData
+            .filter((projectData) => projectData.managerId === managerID)
+            .map((projectData) => projectData.projectName),
+          hours: totalHours,
+          expectedHours: totalExpectedHours,
+        };
+      }
+  
+      res.send({ managersData });
+    } catch (error) {
+      console.log("error", error);
+      res.send({ error: error });
+    }
+  };
+
+//   Get billable, non-billable and expected hours data
+  exports.getDataforPlotting = async function (req, res) {
+    try {
+      const timesheets = await TimesheetModel.find({});
+      const result = {};
+  
+      for (const timesheet of timesheets) {
+        const projectID = timesheet.projectID;
+        const resourceID = timesheet.resourceID;
+  
+        const project = await ProjectModel.findById(projectID).exec();
+  
+        if (!project) continue;
+  
+        const vertical = project.vertical;
+  
+        const resourceMap = await ResourceMapModel.findOne({
+          projectID,
+          resourceID,
+        }).exec();
+        const expectedHours = resourceMap ? resourceMap.expectedHours : 0;
+  
+        const isBillable =
+          resourceMap && resourceMap.isClientBillable
+            ? resourceMap.isClientBillable.billable
+            : false;
+        const from = resourceMap.isClientBillable.from;
+        const till = resourceMap.isClientBillable.till;
+  
+        let billableHours = 0;
+        let nonBillableHours = 0;
+  
+        for (let i = 0; i < timesheet.totalHours.length; i++) {
+          const currentDate = timesheet.startDate;
+          currentDate.setDate(currentDate.getDate() + i);
+  
+          if (!from) {
+            nonBillableHours += timesheet.totalHours[i];
+          } else if (from && !till) {
+            billableHours += timesheet.totalHours[i];
+          } else if (from && till) {
+            if (currentDate >= from && currentDate <= till) {
+              billableHours += timesheet.totalHours[i];
+            } else {
+              nonBillableHours += timesheet.totalHours[i];
+            }
+          }
+        }
+  
+        const hours = {
+          billableHours,
+          nonBillableHours,
+        };
+  
+        if (isBillable === false) {
+          hours.nonBillableHours += hours.billableHours;
+          hours.billableHours = 0;
+        }
+  
+        if (!result[vertical]) {
+          result[vertical] = hours;
+          result[vertical].expectedHours = 0;
+        } else {
+          result[vertical].billableHours += hours.billableHours;
+          result[vertical].nonBillableHours += hours.nonBillableHours;
+        }
+  
+        result[vertical].expectedHours += expectedHours;
+      }
+  
+      res.send(result);
+    } catch (error) {
+      console.error("Error: ", error);
+      res.status(500).send({ error: "Internal Server Error" });
+    }
+  };
+  
