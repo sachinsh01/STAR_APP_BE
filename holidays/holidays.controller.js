@@ -3,7 +3,7 @@ const HolidaysModel = require("../models/holidays");
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
-
+// API to find all holidays 
 exports.all = async function (req, res) {
   try {
     const holidays = await HolidaysModel.find({}).sort({ date: 1 }); //Sort in ascending order
@@ -14,7 +14,7 @@ exports.all = async function (req, res) {
     res.send(500).send("Server Error");
   }
 };
-
+// API to save new holiday
 exports.save = async function (req, res) {
   const newHoliday = new HolidaysModel({
     name: req.body.name,
@@ -24,7 +24,6 @@ exports.save = async function (req, res) {
   newHoliday
     .save()
     .then(() => {
-      //   console.log("holiday saved successfully");
       res.send({ holiday: newHoliday });
     })
     .catch((error) => {
@@ -32,7 +31,7 @@ exports.save = async function (req, res) {
       res.send(error);
     });
 };
-
+// API to update existing holiday
 exports.update = async function (req, res) {
   try {
     const holiday = await HolidaysModel.findByIdAndUpdate(
@@ -50,7 +49,7 @@ exports.update = async function (req, res) {
     res.status(500).send("Server Error");
   }
 };
-
+// API to remove holiday
 exports.remove = async function (req, res) {
   try {
     const holiday = await HolidaysModel.findByIdAndRemove(req.params.id);
