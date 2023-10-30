@@ -27,7 +27,7 @@ exports.changePassword = async function (req, res) {
   const hashedPass = await bcrypt.hash(password, salt);
 
   // Find the user by email and update the password
-  UserModel.findOneAndUpdate({email: req.user.email }, {password: hashedPass});
+  UserModel.findOneAndUpdate({ email: req.user.email }, { password: hashedPass });
 
   // Send a success message
   res.send({
@@ -44,14 +44,15 @@ exports.profile = async function (req, res) {
 
 // Function to check if the user is a manager
 exports.isManager = async function (req, res) {
+
   // Find the user based on the provided email
-  const user = await UserModel.findOne({ email: req.user.email });
-  
+  user = await UserModel.findOne({ email: req.user.email });
+
   // Find projects associated with the user as a manager
-  const projects = await ProjectModel.find({managerID: user._id});
+  projects = await ProjectModel.find({ managerID: user._id });
 
   // Check if the user is a manager based on the number of projects associated with them
-  if(projects.length == 0) {
+  if (projects.length == 0) {
     res.send({
       manager: false
     })
@@ -60,6 +61,55 @@ exports.isManager = async function (req, res) {
   else {
     res.send({
       manager: true
+    })
+  }
+}
+
+// Function to check if the user is a manager
+exports.checkManager = async function (req, res) {
+
+  // Find the user based on the provided email
+  let user = await UserModel.findOne({ email: req.body.email });
+  let projects;
+
+  if (user) {
+    // Find projects associated with the user as a manager
+    projects = await ProjectModel.find({ managerID: user._id });
+  }
+
+  else {
+    projects = [];
+  }
+
+  // Check if the user is a manager based on the number of projects associated with them
+  if (projects.length == 0) {
+    res.send({
+      manager: false
+    })
+  }
+
+  else {
+    res.send({
+      manager: true
+    })
+  }
+}
+
+// Function to check if the user is a registered on STAR APP
+exports.checkUser = async function (req, res) {
+
+  // Find the user based on the provided email
+  let user = await UserModel.findOne({ email: req.body.email });
+
+  if (user) {
+    res.send({
+      user: true
+    })
+  }
+
+  else {
+    res.send({
+      user: false
     })
   }
 }
