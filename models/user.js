@@ -27,6 +27,13 @@ const UserSchema = new Mongoose.Schema({
     url: String, // URL of the user's image
     filename: String, // Filename of the user's image
   },
+  shift: { // Shift information of the user
+    type: String,
+  },
+  location: {
+    type: String,
+    required: true
+  },
   isAdmin: { // Boolean indicating whether the user has admin privileges
     type: Boolean,
   },

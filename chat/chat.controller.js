@@ -57,10 +57,10 @@ exports.chatResponse = async function (req, res) {
         openai.chat.completions.create({
             messages: [
                 { role: "system", content: data.context }, // System context
-                { role: "user", content: "users:" + data.users }, // User data
-                { role: "user", content: "projects:" + data.projects }, // Project data
+                { role: "system", content: "users:" + data.users }, // User data
+                { role: "system", content: "projects:" + data.projects }, // Project data
                 /* { role: "user", content: "timesheet:" + data.timesheet }, */ // Timesheet data (commented out)
-                { role: "user", content: "tickets: " + data.tickets + " _id is the primary key" }, // Ticket data
+                { role: "system", content: "tickets: " + data.tickets + " _id is the primary key" }, // Ticket data
                 ...req.body.messages // Additional user messages
             ],
             model: "gpt-3.5-turbo", // Specify the model for OpenAI
