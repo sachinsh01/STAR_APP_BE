@@ -11,6 +11,7 @@ const HolidaysSchema = new Mongoose.Schema({
     type: Date,
     required: true,
   },
+
   locations: {
     type: Map,
     of: [String],

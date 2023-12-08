@@ -41,8 +41,8 @@ exports.createTicket = async function (req, res) {
         subject: req.body.subject,
         category: req.body.category,
         description: req.body.description,
-        status: user._id.toString() === (req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5").toString() ? "Elevated" : (req.body.category === "Technical Issue" ? "Elevated" : "Pending"), // Set the status based on whether the user is the manager or not
-        isElevated: user._id.toString() === (req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5").toString() || req.body.category === "Technical Issue", // Set isElevated based on whether the user is the manager or not
+        status: user._id === (req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5") ? "Elevated" : (req.body.category === "Technical Issue" ? "Elevated" : "Pending"), // Set the status based on whether the user is the manager or not
+        isElevated: user._id === (req.body.projectID ? project.managerID : "65278b2ae0fdc97137c24bb5") || req.body.category === "Technical Issue", // Set isElevated based on whether the user is the manager or not
         remarks: ""
     })
 
