@@ -1,5 +1,6 @@
 // Import necessary modules and models
 const UserModel = require("../models/user");
+const HolidaysModel = require("../models/holidays");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mailer = require("../helpers/mailer");
@@ -18,7 +19,6 @@ exports.getAllUsers = async function (req, res) {
 
 // Function to change user password
 exports.changePassword = async function (req, res) {
-
   // Extract the password from the request body
   const password = req.body.password;
 
@@ -27,11 +27,14 @@ exports.changePassword = async function (req, res) {
   const hashedPass = await bcrypt.hash(password, salt);
 
   // Find the user by email and update the password
-  UserModel.findOneAndUpdate({ email: req.user.email }, { password: hashedPass });
+  UserModel.findOneAndUpdate(
+    { email: req.user.email },
+    { password: hashedPass }
+  );
 
   // Send a success message
   res.send({
-    message: "Password Changed!"
+    message: "Password Changed!",
   });
 };
 
@@ -44,7 +47,6 @@ exports.profile = async function (req, res) {
 
 // Function to check if the user is a manager
 exports.isManager = async function (req, res) {
-
   // Find the user based on the provided email
   user = await UserModel.findOne({ email: req.user.email });
 
@@ -54,20 +56,17 @@ exports.isManager = async function (req, res) {
   // Check if the user is a manager based on the number of projects associated with them
   if (projects.length == 0) {
     res.send({
-      manager: false
-    })
-  }
-
-  else {
+      manager: false,
+    });
+  } else {
     res.send({
-      manager: true
-    })
+      manager: true,
+    });
   }
-}
+};
 
 // Function to check if the user is a manager
 exports.checkManager = async function (req, res) {
-
   // Find the user based on the provided email
   let user = await UserModel.findOne({ email: req.body.email });
   let projects;
@@ -75,44 +74,37 @@ exports.checkManager = async function (req, res) {
   if (user) {
     // Find projects associated with the user as a manager
     projects = await ProjectModel.find({ managerID: user._id });
-  }
-
-  else {
+  } else {
     projects = [];
   }
 
   // Check if the user is a manager based on the number of projects associated with them
   if (projects.length == 0) {
     res.send({
-      manager: false
-    })
-  }
-
-  else {
+      manager: false,
+    });
+  } else {
     res.send({
-      manager: true
-    })
+      manager: true,
+    });
   }
-}
+};
 
 // Function to check if the user is a registered on STAR APP
 exports.checkUser = async function (req, res) {
-
   // Find the user based on the provided email
   let user = await UserModel.findOne({ email: req.body.email });
 
   if (user) {
     res.send({
-      user: true
-    })
-  }
-
-  else {
+      user: true,
+    });
+  } else {
     res.send({
-      user: false
-    })
+      user: false,
+    });
   }
-}
+};
 
 // Function to check if the user is an admin
 exports.isAdmin = async function (req, res) {
@@ -215,7 +207,6 @@ exports.login = async function (req, res) {
 
 // Function to handle image upload for a user
 exports.uploadImage = async function (req, res) {
-
   // Retrieve the user from the database
   UserModel.findOneAndUpdate(
     { email: req.user.email },
@@ -237,4 +228,43 @@ exports.uploadImage = async function (req, res) {
       });
     }
   );
+};
+
+// Function to get the holidays associated with an User
+// based on his/her userId
+exports.getHolidays = async function (req, res) {
+  try {
+    const userEmail = req.user.email;
+
+    const user = await UserModel.findOne({ email: userEmail }).lean();
+
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    const userLocations = user.locations || ["Gurugram"];
+    const allHolidays = await HolidaysModel.find();
+
+    const userHolidays = [];
+    allHolidays.forEach((holiday) => {
+      Object.entries(userLocations).forEach(([country, cities]) => {
+        // console.log(country, typeof country, cities, Array.isArray(cities));
+
+        const holidayCities = holiday.locations.get(country);
+
+        if (holidayCities) {
+          // console.log(holidayCities);
+
+          if (cities.some((city) => holidayCities.includes(city))) {
+            // console.log("citites->", cities);
+            userHolidays.push(holiday);
+          }
+        }
+      });
+    });
+
+    res.status(200).json(userHolidays);
+  } catch (error) {
+    res.send({ error });
+    res.status(500).send("Internal Server Error in getting holidays");
+  }
 };

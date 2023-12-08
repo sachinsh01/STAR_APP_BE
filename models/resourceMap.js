@@ -19,8 +19,9 @@ const ResourceMapSchema = new Mongoose.Schema({
     },
     isClientBillable: { // Specifies whether the resource is client billable or not and from what date
         billable: Boolean, // Boolean value indicating whether the client is billable
-        from: Date // Date from which the resource is client billable
-    }
+        from: Date, // Date from which the resource is client billable
+        till: Date // Date till which the resource is client billable
+    },
 });
 
 // Create the ResourceMap model based on the defined schema

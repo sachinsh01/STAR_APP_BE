@@ -3,32 +3,43 @@ const Mongoose = require("mongoose");
 
 // Define the schema for the User model
 const UserSchema = new Mongoose.Schema({
-  id: { // Unique identifier for the user
-    type: String
+  id: {
+    // Unique identifier for the user
+    type: String,
   },
-  name: { // Name of the user
+  name: {
+    // Name of the user
     type: String,
     required: true,
     unique: false,
   },
-  email: { // Email address of the user
+  email: {
+    // Email address of the user
     type: String,
     required: true,
     unique: true,
   },
-  password: { // Password of the user
+  password: {
+    // Password of the user
     type: String,
     required: true,
   },
-  designation: { // Designation or role of the user
+  designation: {
+    // Designation or role of the user
     type: String,
   },
-  image: { // Image information of the user
+  image: {
+    // Image information of the user
     url: String, // URL of the user's image
     filename: String, // Filename of the user's image
   },
-  isAdmin: { // Boolean indicating whether the user has admin privileges
+  isAdmin: {
+    // Boolean indicating whether the user has admin privileges
     type: Boolean,
+  },
+  locations: {
+    type: Map,
+    of: [String],
   },
 });
 
