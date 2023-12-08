@@ -10,6 +10,10 @@ const HolidaysSchema = new Mongoose.Schema({
   date: {
     type: Date,
     required: true,
+  },
+  location: {
+    type: String,
+    required: true
   }
 });
 

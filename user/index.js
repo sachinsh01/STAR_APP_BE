@@ -11,6 +11,7 @@ const router = express.Router();
 
 // Define routes for various user operations
 router.get("/get", UserController.getAllUsers); // Route to get all users
+router.post("/shift", UserController.changeShift); // Route to change Shift
 router.get("/isAdmin", middlewares.checkAuth, UserController.isAdmin); // Route to check if the user is an admin
 router.get("/profile", middlewares.checkAuth, UserController.profile); // Route to get user profile
 router.get("/isManager", middlewares.checkAuth, UserController.isManager); // Route to check if the current user is a manager

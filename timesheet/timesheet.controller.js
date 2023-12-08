@@ -22,7 +22,8 @@ exports.getAttendance = async function (req, res) {
   // Create a query object using the user ID and the provided date
   const query = {
     resourceID: user._id,
-    date: req.body.date
+    date: req.body.date,
+    shift: req.body.shift,
   }
 
   // Use the AttendanceModel to find attendance data based on the constructed query
@@ -107,6 +108,33 @@ exports.changeStatus = async function (req, res) {
   );
 }
 
+exports.updateAll = async function (req, res) {
+  try {
+    const { sheets, status } = req.body;
+
+    // Check if sheets and status are provided
+    if (!sheets || !status) {
+      return res.status(400).json({ message: "Invalid input data" });
+    }
+
+    // Update the status for each selected timesheet
+    await Promise.all(
+      sheets.map(async (timesheetId) => {
+        await TimesheetModel.findByIdAndUpdate(
+          timesheetId,
+          { status: status },
+          { new: true } // Return the updated document
+        );
+      })
+    );
+
+    res.json({ message: "Status updated for selected timesheets" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 //Saves attendance data for a user based on the provided input.
 exports.saveAttendance = async function (req, res) {
   const user = await UserModel.findOne({ email: req.user.email });
@@ -120,6 +148,7 @@ exports.saveAttendance = async function (req, res) {
     const attendance = await AttendanceModel.findOne({
       resourceID: user._id,
       projectID: key,
+      shift: req.body.shift,
       date: req.body.weekStartDate
     });
 
@@ -135,6 +164,7 @@ exports.saveAttendance = async function (req, res) {
         await AttendanceModel.deleteOne({
           resourceID: user._id,
           projectID: key,
+          shift: req.body.shift,
           date: req.body.weekStartDate
         });
       }
@@ -146,6 +176,7 @@ exports.saveAttendance = async function (req, res) {
       projectID: key,
       date: req.body.weekStartDate,
       hours: hours,
+      shift: req.body.shift,
       isSubmitted: false
     });
 
@@ -181,6 +212,7 @@ exports.submitTimesheet = async function (req, res) {
     const attendance = await AttendanceModel.findOne({
       resourceID: user._id,
       projectID: key,
+      shift: req.body.shift,
       date: req.body.weekStartDate
     });
 
@@ -195,6 +227,7 @@ exports.submitTimesheet = async function (req, res) {
         await AttendanceModel.deleteOne({
           resourceID: user._id,
           projectID: key,
+          shift: req.body.shift,
           date: req.body.weekStartDate
         });
       }
@@ -228,6 +261,7 @@ exports.submitTimesheet = async function (req, res) {
       projectID: key,
       date: req.body.weekStartDate,
       hours: hours,
+      shift: req.body.shift,
       isSubmitted: true
     });
 
@@ -240,12 +274,14 @@ exports.submitTimesheet = async function (req, res) {
         startDate: req.body.weekStartDate,
         endDate: moment(req.body.weekStartDate).add(7, "days"),
         totalHours: Array.isArray(hours) ? hours : Array(7).fill(0),
+        shift: user.shift,
         comment: req.body.comment,
         submissionDate: moment(),
         approvalDate: "",
         status: autoApprove ? "Auto-Approved" : "Pending",
         remarks: "",
-        expectedHours: expectedHours // Add expectedHours to the timesheet
+        expectedHours: expectedHours, // Add expectedHours to the timesheet
+        shift: req.body.shift,
       });
 
       timesheetData.save().then((data) => {

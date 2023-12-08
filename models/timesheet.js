@@ -23,6 +23,9 @@ const TimesheetSchema = new Mongoose.Schema({
     expectedHours: { // Expected number of hours for the timesheet
         type: Number,
     },
+    shift: { // Shift information of the user
+        type: String,
+    },
     comment: { // Additional comments related to the timesheet
         type: String
     },

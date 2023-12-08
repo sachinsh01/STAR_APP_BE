@@ -16,6 +16,12 @@ exports.getAllUsers = async function (req, res) {
   res.send(users);
 };
 
+// Function to change shift of a user
+exports.changeShift = async function (req, res) {
+  const users = await UserModel.findOneAndUpdate({_id: req.body.id}, {shift: req.body.shift});
+  res.send("Shift Updated");
+};
+
 // Function to change user password
 exports.changePassword = async function (req, res) {
 

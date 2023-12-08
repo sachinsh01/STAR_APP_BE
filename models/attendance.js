@@ -17,6 +17,9 @@ const AttendanceSchema = new Mongoose.Schema({
     hours: { // Array of numbers for storing hours worked
         type: [Number]
     },
+    shift: { // Shift information of the user
+        type: String
+    },
     isSubmitted: { // Boolean field to indicate if the attendance is submitted
         type: Boolean
     }
