@@ -5,7 +5,7 @@ const UserModel = require("../models/user");
 const ProjectModel = require("../models/project");
 const ResourceMapModel = require("../models/resourceMap");
 const mailer = require("../helpers/mailer");
-const moment = require('moment');
+const moment = require("moment");
 
 // Load environment variables if not in production mode
 if (process.env.NODE_ENV !== "production") {
@@ -29,9 +29,9 @@ exports.getAttendance = async function (req, res) {
   // Use the AttendanceModel to find attendance data based on the constructed query
   await AttendanceModel.find(query).then((data) => {
     // Send the retrieved data as the response
-    res.send(data)
-  })
-}
+    res.send(data);
+  });
+};
 
 exports.managerTimesheets = async function (req, res) {
   try {
@@ -86,27 +86,40 @@ exports.managerTimesheets = async function (req, res) {
 exports.changeStatus = async function (req, res) {
   await TimesheetModel.findOneAndUpdate(
     { _id: req.body.ID }, // Find the timesheet by its ID
-    { status: req.body.status, remarks: req.body.remarks, approvalDate: moment() } // Update the status and remarks
+    {
+      status: req.body.status,
+      remarks: req.body.remarks,
+      approvalDate: moment(),
+    } // Update the status and remarks
   ).then(
-    (data) => { // If the operation is successful
+    (data) => {
+      // If the operation is successful
       console.log("Status Updated!", data);
 
-      if(req.body.status == "Rejected") {
-        AttendanceModel.findOneAndUpdate({resourceID: req.body.sheet.resourceID, projectID: req.body.sheet.projectID, date: req.body.sheet.startDate}, {isSubmitted: false});
+      if (req.body.status == "Rejected") {
+        AttendanceModel.findOneAndUpdate(
+          {
+            resourceID: req.body.sheet.resourceID,
+            projectID: req.body.sheet.projectID,
+            date: req.body.sheet.startDate,
+          },
+          { isSubmitted: false }
+        );
       }
 
       res.send({
-        message: "Action Performed!" // Send a success message
+        message: "Action Performed!", // Send a success message
       });
     },
-    (error) => { // If an error occurs during the operation
+    (error) => {
+      // If an error occurs during the operation
       console.log("Error: ", error);
       res.send({
-        message: "Internal Server Error!" // Send an error message
+        message: "Internal Server Error!", // Send an error message
       });
     }
   );
-}
+};
 
 exports.updateAll = async function (req, res) {
   try {
@@ -141,8 +154,9 @@ exports.saveAttendance = async function (req, res) {
   let success = true;
 
   for (const key in req.body.hours) {
-
-    const hours = req.body.hours[key].map((value) => (value === "" ? 0 : value));
+    const hours = req.body.hours[key].map((value) =>
+      value === "" ? 0 : value
+    );
 
     // Check if attendance data exists for the user, project, and date
     const attendance = await AttendanceModel.findOne({
@@ -157,8 +171,8 @@ exports.saveAttendance = async function (req, res) {
       if (attendance.isSubmitted) {
         return res.send({
           message: "Cannot Save! Timesheet Already Submitted.",
-          error: true
-        })
+          error: true,
+        });
       } else {
         // Delete any existing attendance data for the user and project on the specified date
         await AttendanceModel.deleteOne({
@@ -178,26 +192,30 @@ exports.saveAttendance = async function (req, res) {
       hours: hours,
       shift: req.body.shift,
       isSubmitted: false
+
     });
 
-    attendanceData.save().then((data) => {
-      console.log("Following data saved: ", data);
-    }, (error) => {
-      console.log("Error While Saving the Data", error);
-      success = false;
-    });
+    attendanceData.save().then(
+      (data) => {
+        console.log("Following data saved: ", data);
+      },
+      (error) => {
+        console.log("Error While Saving the Data", error);
+        success = false;
+      }
+    );
   }
 
   if (success) {
     res.send({
-      message: "Data Saved Successfully!"
+      message: "Data Saved Successfully!",
     });
   } else {
     res.send({
-      message: "Internal Server Error!"
+      message: "Internal Server Error!",
     });
   }
-}
+};
 
 //Submits timesheet data for a user, including attendance data and relevant details.
 exports.submitTimesheet = async function (req, res) {
@@ -205,8 +223,9 @@ exports.submitTimesheet = async function (req, res) {
   let success = true;
 
   for (const key in req.body.hours) {
-
-    const hours = req.body.hours[key].map((value) => (value === "" ? 0 : value));
+    const hours = req.body.hours[key].map((value) =>
+      value === "" ? 0 : value
+    );
 
     // Check if attendance data exists for the user, project, and date
     const attendance = await AttendanceModel.findOne({
@@ -214,6 +233,7 @@ exports.submitTimesheet = async function (req, res) {
       projectID: key,
       shift: req.body.shift,
       date: req.body.weekStartDate
+
     });
 
     // Handle scenarios based on existing attendance data
@@ -221,7 +241,7 @@ exports.submitTimesheet = async function (req, res) {
       if (attendance.isSubmitted) {
         return res.send({
           message: "Already submitted timesheet for this week",
-          error: true
+          error: true,
         });
       } else {
         await AttendanceModel.deleteOne({
@@ -236,7 +256,7 @@ exports.submitTimesheet = async function (req, res) {
     // Fetch resource map data for the user and project
     const query = {
       projectID: key,
-      resourceID: user._id
+      resourceID: user._id,
     };
 
     const resourceMap = await ResourceMapModel.findOne(query);
@@ -284,32 +304,37 @@ exports.submitTimesheet = async function (req, res) {
         shift: req.body.shift,
       });
 
-      timesheetData.save().then((data) => {
-        mailer.timesheetEmail(user, data); // Send email notification for the timesheet
-        console.log("Following timesheet created: ", data);
-      }, (error) => {
-        console.log("Error While Submitting the Data", error);
+        timesheetData.save().then(
+          (data) => {
+            mailer.timesheetEmail(user, data); // Send email notification for the timesheet
+            console.log("Following timesheet created: ", data);
+          },
+          (error) => {
+            console.log("Error While Submitting the Data", error);
+            success = false;
+          }
+        );
+      },
+      (error) => {
+        console.log("Error While Saving the Data", error);
         success = false;
-      });
-    }, (error) => {
-      console.log("Error While Saving the Data", error);
-      success = false;
-    });
+      }
+    );
   }
 
   // Respond with appropriate messages based on the success status
   if (success) {
     res.send({
-      message: "Data Submitted Successfully!"
+      message: "Data Submitted Successfully!",
     });
   } else {
     res.send({
-      message: "Internal Server Error!"
+      message: "Internal Server Error!",
     });
   }
-}
+};
 
-//Retrieves timesheets for the currently authenticated user. 
+//Retrieves timesheets for the currently authenticated user.
 //This function fetches timesheet data and the corresponding project names.
 exports.getTimesheets = async function (req, res) {
   // Find the user based on the provided email from the request
@@ -318,11 +343,13 @@ exports.getTimesheets = async function (req, res) {
   try {
     // Fetch timesheets for the user and map them to include project names
     const timesheets = await Promise.all(
-      (await TimesheetModel.find({ resourceID: user._id })).map(async (item) => {
+      (
+        await TimesheetModel.find({ resourceID: user._id })
+      ).map(async (item) => {
         const project = await ProjectModel.findOne({ _id: item.projectID });
         return {
           ...item.toObject(), // Convert Mongoose document to plain JavaScript object
-          projectName: project.projectName
+          projectName: project.projectName,
         };
       })
     );
@@ -342,7 +369,7 @@ exports.getTimesheets = async function (req, res) {
     console.error(error);
     res.status(500).send({ message: "Internal Server Error!" });
   }
-}
+};
 
 //Deletes a timesheet and its associated attendance data.
 exports.deleteTimesheet = async function (req, res) {

@@ -3,7 +3,7 @@ const HolidaysModel = require("../models/holidays");
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
-// API to find all holidays 
+// API to find all holidays
 exports.all = async function (req, res) {
   try {
     const holidays = await HolidaysModel.find({}).sort({ date: 1 }); //Sort in ascending order
@@ -19,6 +19,7 @@ exports.save = async function (req, res) {
   const newHoliday = new HolidaysModel({
     name: req.body.name,
     date: req.body.date,
+    locations: req.body.locations,
   });
 
   newHoliday
@@ -62,5 +63,51 @@ exports.remove = async function (req, res) {
   } catch (error) {
     console.log(error);
     res.status(500).send("Server Error");
+  }
+};
+
+// API to send list of locations
+exports.allCountries = async function (req, res) {
+  try {
+    const locations = [
+      {
+        country: "India",
+        cities: [
+          "All",
+          "Gurugram",
+          "Hyderabad",
+          "Chennai",
+          "Pune",
+          "Bangalore",
+        ],
+      },
+      {
+        country: "USA",
+        cities: ["All", "Santa Clara", "Boston", "New Jersey", "Dallas"],
+      },
+
+      { country: "Mexico", cities: ["Guadalajara"] },
+      { country: "Canada", cities: ["Mississauga"] },
+    ];
+
+    res.send(locations);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.presentCountry = async function (req, res) {
+  try {
+    const country = req.params.country;
+
+    const holidays = await HolidaysModel.find({
+      [`locations.${country}`]: { $exists: true },
+    });
+
+    res.send(holidays);
+  } catch (error) {
+    console.log("Error in getting location for the country", error);
+    res.status(500).send({ error });
   }
 };

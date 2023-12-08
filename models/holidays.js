@@ -5,16 +5,17 @@ const Mongoose = require("mongoose");
 const HolidaysSchema = new Mongoose.Schema({
   name: {
     type: String,
-    required: true
-  }, 
+    required: true,
+  },
   date: {
     type: Date,
     required: true,
   },
-  location: {
-    type: String,
-    required: true
-  }
+
+  locations: {
+    type: Map,
+    of: [String],
+  },
 });
 
 const HolidaysModel = Mongoose.model("Holidays", HolidaysSchema);
